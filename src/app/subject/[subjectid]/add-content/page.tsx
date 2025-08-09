@@ -1,5 +1,6 @@
 
 import QuestionForm from '@/components/addcontentforms/QuestionForm';
+import { log } from 'node:console';
 
 import React from 'react'
 
@@ -8,13 +9,14 @@ const page = async({params,searchParams}:RouteParams) => {
   const {type} = await searchParams;
   
   const [a,b] = type.split('_')
+  const[c,s]= subjectid.split("_")
 
-  
+  console.log(c)
   
  
   return (
   // <AddContentPage subjectId={subjectid} contentType={type} />
-  <QuestionForm  subjectId={subjectid} contentType={a} classno={b}/>
+  <QuestionForm  subjectId={s} contentType={a} classno={b}/>
 
   )
 }

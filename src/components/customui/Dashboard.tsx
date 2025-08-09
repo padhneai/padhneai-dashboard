@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { subjects } from "@/lib/constant";
 import { BookOpen, Calculator, Microscope, Globe } from "lucide-react";
-import Dashboardheader from "./Dashboardheader";
 
 
 
 
-export default function Dashboard() {
+
+export default function Dashboard({classid}:{classid:string}) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
@@ -74,7 +74,7 @@ export default function Dashboard() {
           {subjects.map((subject) => {
             const IconComponent = subject.icon;
             return (
-              <Link key={subject.id} href={`/subject/${subject.id}?classno=10`}>
+              <Link key={subject.id} href={`/subject/${classid}-${subject.id}`}>
                 <Card className="group hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border-0 shadow-md bg-white">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">

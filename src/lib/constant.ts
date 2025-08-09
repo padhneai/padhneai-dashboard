@@ -191,3 +191,16 @@ import {
       description:''
     },
   }
+
+
+
+
+
+
+
+
+    export const classLevels = [
+    { title: "Class 8", href: "class_8" },
+    { title: "Class 9", href: "class_9" },
+    { title: "Grade 10 ", href: "class_10" },
+  ];
