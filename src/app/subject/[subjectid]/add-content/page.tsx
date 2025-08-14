@@ -9,14 +9,15 @@ const page = async({params,searchParams}:RouteParams) => {
   const {type} = await searchParams;
   
   const [a,b] = type.split('_')
-  const[c,s]= subjectid.split("_")
+  const[c,s]= subjectid.split("-")
+  const cl = c.split("_")[1]
 
-  console.log(c)
+  
   
  
   return (
   // <AddContentPage subjectId={subjectid} contentType={type} />
-  <QuestionForm  subjectId={s} contentType={a} classno={b}/>
+  <QuestionForm  subjectId={s} contentType={a} classno={cl}/>
 
   )
 }

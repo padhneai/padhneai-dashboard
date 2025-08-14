@@ -1,40 +1,74 @@
 'use client';
-import { Input } from '@/components/ui/input';
-import { Editor } from '@tinymce/tinymce-react';
+
 import Image from 'next/image';
 import Texteditor from './TextEditor';
 
-
-
+interface AnswerSheetFormProps {
+  index: number;
+  answer_sheet: ExamQuestion['answer_sheet'];
+  updateAnswerSheet: <K extends keyof ExamQuestion['answer_sheet']>(index: number, field: K, value: ExamQuestion['answer_sheet'][K]) => void;
+  handleImageUpload: (file: File, index: number, type: 'question' | 'answer') => void;
+}
 
 export default function AnswerSheetForm({
   index,
-  answersheet,
+  answer_sheet,
   updateAnswerSheet,
   handleImageUpload
 }: AnswerSheetFormProps) {
   return (
     <div>
       <h3 className="font-semibold mt-4">Answer Sheet</h3>
-      <Input
-        placeholder="Answer Title"
-        value={answersheet.answersheet_title}
-        onChange={(e) => updateAnswerSheet(index, 'answersheet_title', e.target.value)}
+
+      {/* English Answer */}
+      <Texteditor
+        id={'answer-english-' + index}
+        content={answer_sheet.answer_english}
+        setContent={(content) => updateAnswerSheet(index, 'answer_english', content)}
+        placeholder="Answer in English"
       />
- 
-<Texteditor
-id={'answer'+index.toString()}
-  content={answersheet.answersheet_description}
-  setContent={(content) => updateAnswerSheet(index, 'answersheet_description', content)}
-/>
-      <div>
+
+      {/* Nepali Answer */}
+      <Texteditor
+        id={'answer-nepali-' + index}
+        content={answer_sheet.answer_nepali}
+        setContent={(content) => updateAnswerSheet(index, 'answer_nepali', content)}
+        placeholder="Answer in Nepali"
+      />
+
+      {/* Answer Image */}
+      <div className="border-2 border-dashed rounded-lg p-4 text-center hover:bg-gray-50 mt-4">
         <input
           type="file"
           accept="image/*"
-          onChange={(e) => e.target.files && handleImageUpload(e.target.files[0], index, 'answer')}
+          className="hidden"
+          id={`a-image-${index}`}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              if (file.size > 2 * 1024 * 1024) {
+                alert("Image size should be under 2MB");
+                return;
+              }
+              handleImageUpload(file, index, 'answer');
+            }
+          }}
         />
-        {answersheet.answersheet_image && (
-          <Image src={answersheet.answersheet_image} alt="Preview" width={200} height={200} />
+        {answer_sheet.answer_image ? (
+          <div className="relative inline-block">
+            <Image src={answer_sheet.answer_image} alt="Preview" width={200} height={200} className="rounded" />
+            <button
+              type="button"
+              className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded"
+              onClick={() => updateAnswerSheet(index, 'answer_image', null)}
+            >
+              Remove
+            </button>
+          </div>
+        ) : (
+          <label htmlFor={`a-image-${index}`} className="cursor-pointer text-gray-500">
+            Click to upload image
+          </label>
         )}
       </div>
     </div>

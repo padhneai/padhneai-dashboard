@@ -16,11 +16,10 @@ import { contentCategories, subjectData, subjects } from "@/lib/constant";
 
 export default function SubjectPage({subjectId,classno}:{subjectId:string,classno:string}) {
  
-  const subject = subjectData[subjectId as keyof typeof subjectData];
-  console.log(subject)
+
   const [activeTab, setActiveTab] = useState("model-sets");
 
-  if (!subject) {
+  if (!subjectId) {
     return <div>Subject not found</div>;
   }
 
@@ -32,8 +31,8 @@ export default function SubjectPage({subjectId,classno}:{subjectId:string,classn
           <div className="flex items-center justify-between py-6">
            
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{subject.name}</h1>
-                <p className="text-gray-600 mt-1">{subject.description}</p>
+                <h1 className="text-3xl font-bold text-gray-900">{subjectId}</h1>
+                <p className="text-gray-600 mt-1">{subjectId}</p>
               </div>
            
             <div className="flex items-center space-x-3">
