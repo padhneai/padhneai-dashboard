@@ -8,8 +8,8 @@ import Texteditor from './TextEditor';
 interface QuestionItemProps {
   index: number;
   question: ExamQuestion;
-  updateQuestion: <K extends keyof ExamQuestion>(index: number, field: K, value: ExamQuestion[K]) => void;
-  updateAnswerSheet: <K extends keyof AnswerSheet>(index: number, field: K, value: AnswerSheet[K]) => void;
+  updateQuestion: ( index: number, field: keyof ExamQuestion, value: ExamQuestion[keyof ExamQuestion]) => void;
+  updateAnswerSheet: (index: number, field: keyof AnswerSheet, value: AnswerSheet[keyof AnswerSheet]) => void;
   removeQuestion: (index: number) => void;
   handleImageUpload: (file: File, index: number, type: 'question' | 'answer') => void;
 }
@@ -39,6 +39,7 @@ export default function QuestionItem({
       </div>
 
       <Texteditor
+        label="Question in English"
         content={question.question_english}
         id={'question-english-' + index}
         setContent={(content) => updateQuestion(index, 'question_english', content)}
@@ -46,6 +47,7 @@ export default function QuestionItem({
       />
 
       <Texteditor
+        label="Question in Nepali"
         content={question.question_nepali}
         id={'question-nepali-' + index}
         setContent={(content) => updateQuestion(index, 'question_nepali', content)}

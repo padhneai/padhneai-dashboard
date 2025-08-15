@@ -8,9 +8,9 @@ const page = async({params,searchParams}:RouteParams) => {
   const {subjectid} = await params;
   const {type} = await searchParams;
   
-  const [a,b] = type.split('_')
-  const[c,s]= subjectid.split("-")
-  const cl = c.split("_")[1]
+  const [a,b] = type.split('_') // this is for type (a)
+  const[c,s]= subjectid.split("-") // this is for subjectid (s)
+  const cl = c.split("_")[1] //this is for classno
 
   
   

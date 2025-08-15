@@ -22,6 +22,7 @@ export default function AnswerSheetForm({
 
       {/* English Answer */}
       <Texteditor
+        label="Answer in English"
         id={'answer-english-' + index}
         content={answer_sheet.answer_english}
         setContent={(content) => updateAnswerSheet(index, 'answer_english', content)}
@@ -30,6 +31,7 @@ export default function AnswerSheetForm({
 
       {/* Nepali Answer */}
       <Texteditor
+        label="Answer in Nepali"
         id={'answer-nepali-' + index}
         content={answer_sheet.answer_nepali}
         setContent={(content) => updateAnswerSheet(index, 'answer_nepali', content)}

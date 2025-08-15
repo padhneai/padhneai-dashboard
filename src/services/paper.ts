@@ -1,7 +1,7 @@
 import apiClient from "@/config/apiClient";
 
 
-export const getAllPapers = async (): Promise<Paper[] | string> => {
+export const getAllPapers = async (): Promise<Paper[]> => {
   try {
     const { data } = await apiClient.get<Paper[]>("/papers/");
     return data;
@@ -10,7 +10,7 @@ export const getAllPapers = async (): Promise<Paper[] | string> => {
   }
 };
 
-export const getPaperById = async (id: number): Promise<Paper | string> => {
+export const getPaperById = async (id: number): Promise<Paper> => {
   try {
     const { data } = await apiClient.get<Paper>(`/papers/${id}/`);
     return data;
@@ -19,7 +19,7 @@ export const getPaperById = async (id: number): Promise<Paper | string> => {
   }
 };
 
-export const createPaper = async (paper: Paper): Promise<Paper | string> => {
+export const createPaper = async (paper: Paper): Promise<Paper> => {
   console.log(paper);
   try {
     const { data } = await apiClient.post<Paper>("/papers/", paper);
@@ -32,7 +32,7 @@ export const createPaper = async (paper: Paper): Promise<Paper | string> => {
 export const updatePaper = async (
   id: number,
   paper: Paper
-): Promise<Paper | string> => {
+): Promise<Paper> => {
   try {
     const { data } = await apiClient.put<Paper>(`/papers/${id}/`, paper);
     return data;
@@ -41,7 +41,7 @@ export const updatePaper = async (
   }
 };
 
-export const deletePaper = async (id: number): Promise<string> => {
+export const deletePaper = async (id: number): Promise< string> => {
   try {
     await apiClient.delete(`/papers/${id}/`);
     return "Deleted successfully";
