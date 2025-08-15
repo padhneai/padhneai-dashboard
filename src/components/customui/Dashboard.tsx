@@ -11,6 +11,7 @@ import { BookOpen, Calculator, Microscope, Globe } from "lucide-react";
 
 
 export default function Dashboard({classid}:{classid:string}) {
+  console.log(classid)
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
@@ -74,8 +75,7 @@ export default function Dashboard({classid}:{classid:string}) {
           {subjects.map((subject) => {
             const IconComponent = subject.icon;
             return (
-              <Link key={subject.id} href={`/subject/${classid}-${subject.id}`}>
-                <Card className="group hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border-0 shadow-md bg-white">
+                <Card key={subject.id} className="group hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border-0 shadow-md bg-white">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between mb-3">
                       <div className={`p-3 rounded-lg ${subject.color}`}>
@@ -112,13 +112,15 @@ export default function Dashboard({classid}:{classid:string}) {
                       </div>
                     </div>
                     <div className="mt-4 pt-4 border-t border-gray-100">
+              <Link  href={`/${classid}/${subject.id}`}>
+
                       <Button variant="outline" className="w-full group-hover:bg-blue-50 group-hover:border-blue-200 group-hover:text-blue-700 transition-all">
                         Manage Content
                       </Button>
+              </Link>
                     </div>
                   </CardContent>
                 </Card>
-              </Link>
             );
           })}
         </div>

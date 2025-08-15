@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,17 +8,62 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Plus, FileText, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { deletePaper } from "@/services/paper";
+import { toast } from "sonner";
+import AlertDialogbox from "./AlertDiologbox";
 
-import { contentCategories, subjectData, subjects } from "@/lib/constant";
+import { contentCategories } from "@/lib/constant";
 
 
 
 
 
 export default function SubjectPage({subjectId,classno,data}:{subjectId:string,classno:string,data:Paper[]}) {
- 
-
   const [activeTab, setActiveTab] = useState("model-sets");
+  const [papers, setPapers] = useState<Paper[]>(data);
+  const cl = classno.split("_")[1]
+  // Memoize category mapping to prevent recreation on every render
+  const categoryMap = useMemo(() => ({
+    'model-sets': 'Model Question',
+    'question-banks': '10 Set',
+    'notes': 'Notes',
+    'past-papers': 'Past Papers'
+  }), []);
+
+  // Delete handler with confirmation
+  const handleDelete = useCallback(async (paperId: number) => {
+    try {
+      await deletePaper(paperId);
+      setPapers(prevPapers => prevPapers.filter(paper => paper.id !== paperId));
+      toast.success('Paper deleted successfully!', {
+        duration: 3000,
+        richColors: true,
+      });
+    } catch (error) {
+      console.error('Error deleting paper:', error);
+      toast.error('Failed to delete paper', {
+        duration: 3000,
+        richColors: true,
+      });
+    }
+  }, []);
+
+  // Memoize filtered papers for each category to prevent expensive filtering on every render
+  const categorizedPapers = useMemo(() => {
+    if (!papers || papers.length === 0) return {};
+    
+    const result: Record<string, Paper[]> = {};
+    
+    contentCategories.forEach(category => {
+      result[category.id] = papers.filter(paper => 
+        paper.question_type === categoryMap[category.id] &&
+        paper.subject === subjectId &&
+        paper.class_name === cl
+      );
+    });
+    
+    return result;
+  }, [papers, subjectId, cl, categoryMap]);
 
   if (!subjectId) {
     return <div>Subject not found</div>;
@@ -34,11 +79,11 @@ export default function SubjectPage({subjectId,classno,data}:{subjectId:string,c
             <div className="flex items-center justify-between py-6">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">{subjectId}</h1>
-                <p className="text-gray-600 mt-1">Class {classno}</p>
+                <p className="text-gray-600 mt-1">Class {cl}</p>
               </div>
               <div className="flex items-center space-x-3">
                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                  Class {classno}
+                  Class {cl}
                 </Badge>
               </div>
             </div>
@@ -55,7 +100,7 @@ export default function SubjectPage({subjectId,classno,data}:{subjectId:string,c
               <p className="text-sm text-gray-500">Get started by creating your first content:</p>
               <div className="flex flex-wrap gap-4 justify-center">
                 {contentCategories.map((category) => (
-                  <Link key={category.id} href={`/subject/${classno}_${subjectId}/add-content?type=${category.id}`}>
+                  <Link key={category.id} href={`/${classno}/${subjectId}/add-content?type=${category.id}`}>
                     <Button variant="outline" className="flex items-center gap-2">
                       <category.icon className="w-4 h-4" />
                       Add {category.name}
@@ -87,7 +132,7 @@ export default function SubjectPage({subjectId,classno,data}:{subjectId:string,c
            
             <div className="flex items-center space-x-3">
               <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                Class {classno}
+                Class {cl}
               </Badge>
             
             </div>
@@ -112,19 +157,8 @@ export default function SubjectPage({subjectId,classno,data}:{subjectId:string,c
           </TabsList>
 
           {contentCategories.map((category) => {
-            // Filter papers based on category, subject, and class
-            const categoryMap: Record<string, string> = {
-              'model-sets': 'Model Question',
-              'question-banks': '10 Set',
-              'notes': 'Notes',
-              'past-papers': 'Past Papers'
-            };
-            
-            const filteredPapers = data.filter(paper => 
-              paper.question_type === categoryMap[category.id] &&
-              paper.subject === subjectId &&
-              paper.class_name === classno
-            );
+            // Get pre-filtered papers for this category
+            const filteredPapers = categorizedPapers[category.id] || [];
 
             return (
               <TabsContent key={category.id} value={category.id} className="space-y-6">
@@ -133,7 +167,7 @@ export default function SubjectPage({subjectId,classno,data}:{subjectId:string,c
                     <h2 className="text-2xl font-semibold text-gray-900">{category.name}</h2>
                     <p className="text-gray-600 mt-1">{category.description}</p>
                   </div>
-                  <Link href={`/subject/${classno}_${subjectId}/add-content?type=${category.id}`}>
+                  <Link href={`/${classno}/${subjectId}/add-content?type=${category.id}`}>
                     <Button>
                       <Plus className="w-4 h-4 mr-2" />
                       Add {category.name}
@@ -169,19 +203,33 @@ export default function SubjectPage({subjectId,classno,data}:{subjectId:string,c
                             <TableCell>{paper.question_type}</TableCell>
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-2">
-                                <Link href={`/subject/class_${classno}-${subjectId}/view-questions?id=${paper.id}`}>
+                                <Link href={`/${classno}/${subjectId}/view-questions?id=${paper.id}`}>
                                 <Button variant="outline" size="sm">
                                   View
                                 </Button>
                                 </Link>
-                                <Link href={`/subject/class_${classno}-${subjectId}/edit-questions?id=${paper.id}`}>
+                                <Link href={`/${classno}/${subjectId}/edit-questions?id=${paper.id}`}>
                                 <Button variant="outline" size="sm">
                                   Edit
                                 </Button>
                                 </Link>
-                                <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+                                <AlertDialogbox
+                                  trigger={
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  }
+                                  title="Delete Paper"
+                                  description={`Are you sure you want to delete "${paper.subject} - ${paper.question_type} (${paper.year})"? This action cannot be undone.`}
+                                  actionText="Delete"
+                                  cancelText="Cancel"
+                                  variant="destructive"
+                                  onAction={() => handleDelete(paper.id!)}
+                                />
                               </div>
                             </TableCell>
                           </TableRow>
@@ -196,7 +244,7 @@ export default function SubjectPage({subjectId,classno,data}:{subjectId:string,c
                     <h3 className="mt-2 text-sm font-medium text-gray-900">No {category.name.toLowerCase()} yet</h3>
                     <p className="mt-1 text-sm text-gray-500">Get started by creating your first {category.name.toLowerCase()}.</p>
                     <div className="mt-6">
-                      <Link href={`/subject/${classno}_${subjectId}/add-content?type=${category.id}`}>
+                      <Link href={`/${classno}/${subjectId}/add-content?type=${category.id}`}>
                         <Button>
                           <Plus className="w-4 h-4 mr-2" />
                           Add {category.name}

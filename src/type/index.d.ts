@@ -80,3 +80,15 @@ interface QuestionItemProps {
     type: "question" | "answer"
   ) => void;
 }
+
+
+interface AlertDialogboxProps {
+  trigger: ReactNode;
+  title: string;
+  description: string;
+  cancelText?: string;
+  actionText?: string;
+  onAction: () => void;
+  onCancel?: () => void;
+  variant?: "default" | "destructive";
+}

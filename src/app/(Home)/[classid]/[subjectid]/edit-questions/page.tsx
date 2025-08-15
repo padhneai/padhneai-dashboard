@@ -3,17 +3,16 @@ import QuestionForm from '@/components/addcontentforms/QuestionForm'
 import { getPaperById } from '@/services/paper';
 
 const page = async({params,searchParams}:RouteParams) => {
-    const { subjectid } =await params;
+    const { subjectid,classid } =await params;
     const {id} = await searchParams;
   const paperidno = Number(id)
   
-  const[c,s]= subjectid.split("-") // this is for subjectid (s)
-  const cl = c.split("_")[1] //this is for classno
   const paperdata = await getPaperById(paperidno)
   
-  
+  // In edit mode, QuestionForm will automatically use data from initialData
+  // No need to pass subjectId and classno since they're in the paperdata
   return (
-    <QuestionForm contentType="" subjectId={s} classno={cl} initialData={paperdata} mode="edit" />
+    <QuestionForm contentType="" initialData={paperdata} mode="edit" />
   )
 }
 

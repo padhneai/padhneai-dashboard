@@ -5,9 +5,10 @@ import { getPaperById } from "@/services/paper";
 
 
 
-const Page = async ({ params,searchParams }: RouteParams) => {
-  const { subjectid } =await params;
+const Page = async ({ searchParams }: RouteParams) => {
+  
   const {id} = await searchParams;
+
 const paperidno = Number(id)
 
 console.log(paperidno)

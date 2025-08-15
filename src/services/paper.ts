@@ -34,7 +34,7 @@ export const updatePaper = async (
   paper: Paper
 ): Promise<Paper> => {
   try {
-    const { data } = await apiClient.put<Paper>(`/papers/${id}/`, paper);
+    const { data } = await apiClient.patch<Paper>(`/papers/${id}/`, paper);
     return data;
   } catch (error: any) {
     return error.message;

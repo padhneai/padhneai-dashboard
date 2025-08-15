@@ -1,5 +1,5 @@
 import { ClassCard } from '@/components/customui/Class_card'
-import Dashboard from '@/components/customui/Dashboard'
+
 import { classLevels } from '@/lib/constant'
 import React from 'react'
 

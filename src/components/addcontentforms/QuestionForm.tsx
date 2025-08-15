@@ -29,13 +29,17 @@ const PROVINCES = [
 
 interface QuestionFormProps {
   contentType: string;
-  subjectId: string;
-  classno: string;
+  subjectId?: string; // Optional - will use initialData.subject in edit mode
+  classno?: string; // Optional - will use initialData.class_name in edit mode
   initialData?: Paper; // Optional initial data for edit mode
   mode?: 'add' | 'edit'; // Mode to determine add or edit
 }
 
 export default function QuestionForm({ contentType, subjectId, classno, initialData, mode = 'add' }: QuestionFormProps) {
+  // In edit mode, use data from initialData; in add mode, use passed props
+  const actualSubjectId = mode === 'edit' ? (initialData?.subject || subjectId) : (subjectId || '');
+  const actualClassno = mode === 'edit' ? (initialData?.class_name || classno) : (classno || '');
+  
   const [province, setProvince] = useState<string>(initialData?.province || '');
   const [metadescription, setMetadescription] = useState<string>(initialData?.metadescription || '');
   const [year, setYear] = useState<string>(initialData?.year || '');
@@ -118,10 +122,15 @@ export default function QuestionForm({ contentType, subjectId, classno, initialD
       return;
     }
 
+    if (!actualSubjectId || !actualClassno) {
+      alert('Subject and class information is required');
+      return;
+    }
+
     const jsonData = {
       province,
-      subject: subjectId,
-      class_name: classno,
+      subject: actualSubjectId,
+      class_name: actualClassno,
       year,
       metadescription,
       question_type: categorytype,
@@ -165,7 +174,7 @@ export default function QuestionForm({ contentType, subjectId, classno, initialD
     <div className="p-6 space-y-6 w-full md:w-[90%] m-auto">
       <div className="flex gap-12">
         <h1 className="text-2xl font-bold">
-          {mode === 'edit' ? 'Edit' : 'Create'} Question Paper of {subjectId}
+          {mode === 'edit' ? 'Edit' : 'Create'} Question Paper of {actualSubjectId}
         </h1>
         <h1 className="text-2xl font-bold">Type : {categorytype}</h1>
       </div>
