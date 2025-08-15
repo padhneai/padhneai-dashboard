@@ -11,7 +11,7 @@ const Page = async ({ searchParams }: RouteParams) => {
 
 const paperidno = Number(id)
 
-console.log(paperidno)
+// console.log(paperidno)
   // Fetch paper data
   const paperdata = await getPaperById(paperidno);
 // console.log(paperdata)
@@ -25,7 +25,10 @@ console.log(paperidno)
 
   // Render HTML directly
   return (
-    <div dangerouslySetInnerHTML={{ __html: htmlString }} className="px-6 py-12 max-w-7xl mx-auto min-h-[85vh]" />
+    <div className="p-4">
+      
+      <div dangerouslySetInnerHTML={{ __html: htmlString }} className="px-6 py-12 max-w-7xl mx-auto min-h-[85vh]" />
+    </div>
   );
 };
 

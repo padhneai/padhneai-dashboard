@@ -1,6 +1,17 @@
-
-import { Editor } from '@tinymce/tinymce-react';
-export default function Texteditor({ content, setContent, id, placeholder,label }: { label:string,content: string; setContent: (value: string) => void; id: string; placeholder?: string }) {
+import { Editor } from "@tinymce/tinymce-react";
+export default function Texteditor({
+  content,
+  setContent,
+  id,
+  placeholder,
+  label,
+}: {
+  label: string;
+  content: string;
+  setContent: (value: string) => void;
+  id: string;
+  placeholder?: string;
+}) {
   return (
     <div className="p-5 w-full ">
       <h1 className="text-xl font-bold mb-4">{label}</h1>
@@ -15,18 +26,31 @@ export default function Texteditor({ content, setContent, id, placeholder,label 
           menubar: false,
           placeholder: placeholder || "Enter your content here...",
           plugins: [
-            "anchor", "autolink", "charmap", "codesample",
-            "emoticons", "image", "link", "lists",
-            "media", "searchreplace", "table",
-            "visualblocks", "wordcount"
+            "anchor",
+            "autolink",
+            "charmap",
+            "codesample",
+            "emoticons",
+            "image",
+            "link",
+            "lists",
+            "media",
+            "searchreplace",
+            "table",
+            "visualblocks",
+            "wordcount"
           ],
+          
+          
           toolbar:
-            "undo redo | bold italic underline strikethrough | " +
-            "alignleft aligncenter alignright alignjustify | " +
-            "bullist numlist outdent indent | link image media table | " +
+            "undo redo | formatselect | bold italic underline strikethrough | " +
+            "forecolor backcolor | alignleft aligncenter alignright alignjustify | " +
+            "bullist numlist outdent indent | blockquote | link image media table | " +
             "codesample emoticons charmap | removeformat",
+
           toolbar_mode: "wrap",
-          content_style: "body { font-family:Helvetica,Arial,sans-serif; font-size:16px }",
+          content_style:
+            "body { font-family:Helvetica,Arial,sans-serif; font-size:16px }",
         }}
       />
     </div>

@@ -7,7 +7,7 @@ const page =async ({params}:RouteParams) => {
     const cl = classid.split("_")[1]
 
  const data = await getAllPapers()
- console.log(data)
+//  console.log(data)
   
     
   return (

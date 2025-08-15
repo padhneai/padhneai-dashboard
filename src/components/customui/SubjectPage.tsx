@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, FileText, Trash2, BookOpen, Eye, Edit } from "lucide-react";
 import Link from "next/link";
 import { deletePaper } from "@/services/paper";
 import { toast } from "sonner";
@@ -72,42 +72,61 @@ export default function SubjectPage({subjectId,classno,data}:{subjectId:string,c
   // Check if data is empty or not available
   if (!data || data.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between py-6">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">{subjectId}</h1>
-                <p className="text-gray-600 mt-1">Class {cl}</p>
+        <div className="bg-white border-b shadow-sm">
+          <div className="mx-auto px-6 py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-6">
+                <Link href={`/${classno}`}>
+                  <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Button>
+                </Link>
+                <div className="border-l pl-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h1 className="text-2xl font-bold text-gray-900">{subjectId}</h1>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                          Class {cl}
+                        </Badge>
+                        <span className="text-sm text-gray-500">No content yet</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+              
               <div className="flex items-center space-x-3">
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                  Class {cl}
-                </Badge>
+                <Button variant="outline" size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Quick Add
+                </Button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* No Data Message */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Empty State */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
-            <FileText className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">No Papers Available</h2>
-            <p className="text-gray-600 mb-8">There are currently no papers or data available for this subject.</p>
-            <div className="space-y-4">
-              <p className="text-sm text-gray-500">Get started by creating your first content:</p>
-              <div className="flex flex-wrap gap-4 justify-center">
-                {contentCategories.map((category) => (
-                  <Link key={category.id} href={`/${classno}/${subjectId}/add-content?type=${category.id}`}>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <category.icon className="w-4 h-4" />
-                      Add {category.name}
-                    </Button>
-                  </Link>
-                ))}
-              </div>
+            <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h2 className="text-lg font-medium text-gray-900 mb-2">No Content Yet</h2>
+            <p className="text-gray-600 mb-6">Start by adding your first content to this subject.</p>
+            <div className="flex flex-wrap gap-3 justify-center">
+              {contentCategories.map((category) => (
+                <Link key={category.id} href={`/${classno}/${subjectId}/add-content?type=${category.id}`}>
+                  <Button variant="outline" size="sm">
+                    <category.icon className="w-4 h-4 mr-2" />
+                    Add {category.name}
+                  </Button>
+                </Link>
+              ))}
             </div>
           </div>
         </div>
@@ -119,31 +138,47 @@ export default function SubjectPage({subjectId,classno,data}:{subjectId:string,c
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-6">
-           
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">{subjectId.toUpperCase()}</h1>
-                
+      <div className="bg-white ">
+        <div className="mx-auto px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-6">
+              <Link href={`/${classno}`}>
+                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  back
+                </Button>
+              </Link>
+              <div className="border-l pl-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900">{subjectId.toUpperCase()}</h1>
+                  
+                  </div>
+                </div>
               </div>
-           
-            <div className="flex items-center space-x-3">
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                Class {cl}
-              </Badge>
-            
             </div>
+            
+            <div className="flex items-center space-x-4 pr-6 ">
+                      <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                        Class {cl}
+                      </Badge>
+                      <span className="text-sm text-gray-500">
+                        {papers.length} {papers.length === 1 ? 'item' : 'items'}
+                      </span>
+                    </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white rounded-lg shadow-sm border p-1">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-4 bg-white rounded-lg border">
             {contentCategories.map((category) => (
               <TabsTrigger 
                 key={category.id} 
@@ -157,100 +192,76 @@ export default function SubjectPage({subjectId,classno,data}:{subjectId:string,c
           </TabsList>
 
           {contentCategories.map((category) => {
-            // Get pre-filtered papers for this category
             const filteredPapers = categorizedPapers[category.id] || [];
 
             return (
-              <TabsContent key={category.id} value={category.id} className="space-y-6">
+              <TabsContent key={category.id} value={category.id} className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-semibold text-gray-900">{category.name}</h2>
-                    <p className="text-gray-600 mt-1">{category.description}</p>
-                  </div>
-                  <Link href={`/${classno}/${subjectId}/add-content?type=${category.id}`}>
-                    <Button>
+                  <h2 className="text-lg font-medium text-gray-900">{category.name}</h2>
+                  <Link href={category.id === 'notes' ? `/${classno}/${subjectId}/add-studynote` : `/${classno}/${subjectId}/add-content?type=${category.id}`}>
+                    <Button size="sm">
                       <Plus className="w-4 h-4 mr-2" />
                       Add {category.name}
                     </Button>
                   </Link>
                 </div>
 
-                {/* Display Papers as Table */}
+                {/* Content Cards */}
                 {filteredPapers.length > 0 ? (
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Subject</TableHead>
-                          <TableHead>Year</TableHead>
-                          <TableHead>Province</TableHead>
-                          <TableHead>Question Type</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredPapers.map((paper) => (
-                          <TableRow key={paper.id}>
-                            <TableCell className="font-medium">{paper.subject}</TableCell>
-                            <TableCell>
-                              <Badge variant="secondary">{paper.year}</Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="text-xs">
-                                {paper.province}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{paper.question_type}</TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <Link href={`/${classno}/${subjectId}/view-questions?id=${paper.id}`}>
-                                <Button variant="outline" size="sm">
-                                  View
-                                </Button>
-                                </Link>
-                                <Link href={`/${classno}/${subjectId}/edit-questions?id=${paper.id}`}>
-                                <Button variant="outline" size="sm">
-                                  Edit
-                                </Button>
-                                </Link>
-                                <AlertDialogbox
-                                  trigger={
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm" 
-                                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                  }
-                                  title="Delete Paper"
-                                  description={`Are you sure you want to delete "${paper.subject} - ${paper.question_type} (${paper.year})"? This action cannot be undone.`}
-                                  actionText="Delete"
-                                  cancelText="Cancel"
-                                  variant="destructive"
-                                  onAction={() => handleDelete(paper.id!)}
-                                />
+                  <div className="grid gap-4">
+                    {filteredPapers.map((paper) => (
+                      <Card key={paper.id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-medium text-gray-900">{paper.subject}</h3>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="secondary" className="text-xs">{paper.year}</Badge>
+                                <Badge variant="outline" className="text-xs">{paper.province}</Badge>
+                                <span className="text-xs text-gray-500">{paper.question_type}</span>
                               </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Link href={category.id === 'notes' ? `/${classno}/${subjectId}/view-studynote?id=${paper.id}` : `/${classno}/${subjectId}/view-questions?id=${paper.id}`}>
+                                <Button variant="ghost" size="sm">
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                              <Link href={category.id === 'notes' ? `/${classno}/${subjectId}/edit-studynote?id=${paper.id}` : `/${classno}/${subjectId}/edit-questions?id=${paper.id}`}>
+                                <Button variant="ghost" size="sm">
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                              <AlertDialogbox
+                                trigger={
+                                  <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                }
+                                title="Delete Content"
+                                description={`Delete "${paper.subject} - ${paper.question_type} (${paper.year})"?`}
+                                actionText="Delete"
+                                cancelText="Cancel"
+                                variant="destructive"
+                                onAction={() => handleDelete(paper.id!)}
+                              />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
                 ) : (
-                  /* Empty State */
-                  <div className="text-center py-12">
-                    <category.icon className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No {category.name.toLowerCase()} yet</h3>
-                    <p className="mt-1 text-sm text-gray-500">Get started by creating your first {category.name.toLowerCase()}.</p>
-                    <div className="mt-6">
-                      <Link href={`/${classno}/${subjectId}/add-content?type=${category.id}`}>
-                        <Button>
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add {category.name}
-                        </Button>
-                      </Link>
-                    </div>
+                  <div className="text-center py-8">
+                    <category.icon className="mx-auto h-10 w-10 text-gray-400 mb-3" />
+                    <h3 className="text-sm font-medium text-gray-900 mb-1">No {category.name.toLowerCase()} yet</h3>
+                    <p className="text-sm text-gray-500 mb-4">Create your first {category.name.toLowerCase()}.</p>
+                    <Link href={category.id === 'notes' ? `/${classno}/${subjectId}/add-studynote` : `/${classno}/${subjectId}/add-content?type=${category.id}`}>
+                      <Button size="sm">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add {category.name}
+                      </Button>
+                    </Link>
                   </div>
                 )}
               </TabsContent>
