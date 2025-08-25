@@ -28,30 +28,36 @@ const PROVINCES = [
   'Sudurpashchim'
 ];
 
-
-
 interface QuestionFormProps {
   contentType: string;
-  subjectname?: string; // Optional - will use initialData.subject in edit mode
-  subjectId?:string;
-  classname?: string; // Optional - will use initialData.class_name in edit mode
-  classid?:string;
-  initialData?: Paper; // Optional initial data for edit mode
-  mode?: 'add' | 'edit'; // Mode to determine add or edit
+  subjectname?: string;
+  subjectId?: string;
+  classname?: string;
+  classid?: string;
+  initialData?: Paper;
+  mode?: 'add' | 'edit';
 }
 
-export default function QuestionForm({ contentType, subjectId, subjectname,classname,classid, initialData, mode = 'add' }: QuestionFormProps) {
-  // In edit mode, use data from initialData; in add mode, use passed props
+export default function QuestionForm({ contentType, subjectId, subjectname, classname, classid, initialData, mode = 'add' }: QuestionFormProps) {
   const actualSubjectId = mode === 'edit' ? (initialData?.subject.id || subjectId) : (subjectId || '');
   const actualClassno = mode === 'edit' ? (initialData?.subject.class_level.id || classid) : (classid || '');
-  
+
   const [province, setProvince] = useState<string>(initialData?.province || '');
   const [metadescription, setMetadescription] = useState<string>(initialData?.metadescription || '');
   const [year, setYear] = useState<string>(initialData?.year || '');
   const categorytype = initialData?.question_type || CATEGORY_MAP[contentType] || 'Model Question';
-    const years: number[] = Array.from({ length: 3079 - 2070 + 1 }, (_, i) => 2070 + i);
-
   const [questions, setQuestions] = useState<ExamQuestion[]>(initialData?.questions || []);
+
+  // Collapse state for each question
+  const [expandedQuestions, setExpandedQuestions] = useState<boolean[]>(
+    initialData?.questions?.map(() => true) || []
+  );
+
+  const toggleQuestion = (index: number) => {
+    const updated = [...expandedQuestions];
+    updated[index] = !updated[index];
+    setExpandedQuestions(updated);
+  };
 
   const addQuestion = () => {
     setQuestions([
@@ -68,37 +74,27 @@ export default function QuestionForm({ contentType, subjectId, subjectname,class
         },
       },
     ]);
+    setExpandedQuestions([...expandedQuestions, true]); // expand new question by default
   };
 
   const removeQuestion = (index: number) => {
     setQuestions(questions.filter((_, i) => i !== index));
+    setExpandedQuestions(expandedQuestions.filter((_, i) => i !== index));
   };
 
-  const updateQuestion = <K extends keyof ExamQuestion>(
-    index: number,
-    field: K,
-    value: ExamQuestion[K]
-  ) => {
+  const updateQuestion = <K extends keyof ExamQuestion>(index: number, field: K, value: ExamQuestion[K]) => {
     const updated = [...questions];
     updated[index][field] = value;
     setQuestions(updated);
   };
 
-  const updateAnswerSheet = <K extends keyof AnswerSheet>(
-    index: number,
-    field: K,
-    value: AnswerSheet[K]
-  ) => {
+  const updateAnswerSheet = <K extends keyof AnswerSheet>(index: number, field: K, value: AnswerSheet[K]) => {
     const updated = [...questions];
     updated[index].answer_sheet[field] = value;
     setQuestions(updated);
   };
 
-  const handleImageUpload = (
-    file: File,
-    index: number,
-    type: 'question' | 'answer'
-  ) => {
+  const handleImageUpload = (file: File, index: number, type: 'question' | 'answer') => {
     if (file.size > 2 * 1024 * 1024) {
       alert('File size must be under 2MB');
       return;
@@ -120,6 +116,7 @@ export default function QuestionForm({ contentType, subjectId, subjectname,class
     setMetadescription('');
     setYear('');
     setQuestions([]);
+    setExpandedQuestions([]);
   };
 
   const handleSubmit = async () => {
@@ -144,37 +141,17 @@ export default function QuestionForm({ contentType, subjectId, subjectname,class
     };
 
     try {
-      let response;
       if (mode === 'edit' && initialData?.id) {
-        // Update existing paper
-        response = await updatePaper(initialData.id, jsonData);
-        // console.log('✅ Paper updated:', response);
-        toast.success('Paper updated successfully!', {
-          duration: 5000,
-          richColors: true,
-        });
+        await updatePaper(initialData.id, jsonData);
+        toast.success('Paper updated successfully!', { duration: 5000, richColors: true });
       } else {
-        // Create new paper
-        console.log(jsonData)
-        response = await createPaper(jsonData);
-        // console.log('✅ Paper created:', response);
-        toast.success( "Paper created successfully" , {
-          duration: 5000,
-          richColors: true,
-        });
-        // console.log(response)
-        
-        // Reset form after successful creation (not for edit)
+        await createPaper(jsonData);
+        toast.success('Paper created successfully!', { duration: 5000, richColors: true });
         resetForm();
       }
-      
     } catch (error: any) {
-      // console.error('❌ Error submitting paper:', error);
       const action = mode === 'edit' ? 'update' : 'create';
-      toast.error(`Failed to ${action} paper`, {
-        duration: 5000,
-        richColors: true,
-      });
+      toast.error(`Failed to ${action} paper`, { duration: 5000, richColors: true });
     }
   };
 
@@ -195,10 +172,10 @@ export default function QuestionForm({ contentType, subjectId, subjectname,class
                 <div className="flex items-center gap-4 text-sm">
                   <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium flex items-center gap-1">
                     <BookOpen className="w-3 h-3" />
-                    Class {actualClassno}
+                     class {classname}
                   </span>
                   <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-medium">
-                    {actualSubjectId}
+                    {subjectname}
                   </span>
                   <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full font-medium flex items-center gap-1">
                     <Award className="w-3 h-3" />
@@ -222,7 +199,6 @@ export default function QuestionForm({ contentType, subjectId, subjectname,class
             </div>
             <h2 className="text-xl font-semibold text-gray-900">Paper Configuration</h2>
           </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -233,11 +209,9 @@ export default function QuestionForm({ contentType, subjectId, subjectname,class
                 <SelectTrigger className="border-2 border-gray-200 focus:border-purple-500 rounded-xl px-4 py-3">
                   <SelectValue placeholder="Select Province" />
                 </SelectTrigger>
-                <SelectContent className='bg-white'>
+                <SelectContent className="bg-white">
                   {PROVINCES.map((p) => (
-                    <SelectItem key={p} value={p} className="py-3">
-                      {p}
-                    </SelectItem>
+                    <SelectItem key={p} value={p} className="py-3">{p}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -264,17 +238,15 @@ export default function QuestionForm({ contentType, subjectId, subjectname,class
         {/* Questions Section */}
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-lg p-8">
-            <div className="
-            flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100 rounded-lg">
                   <Users className="w-5 h-5 text-green-600" />
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900">Questions</h2>
               </div>
-             
             </div>
-            
+
             {questions.length === 0 ? (
               <div className="text-center py-12">
                 <FileQuestion className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -282,17 +254,31 @@ export default function QuestionForm({ contentType, subjectId, subjectname,class
                 <p className="text-gray-400 text-sm">Click "Add Question" to start creating your question paper</p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {questions.map((q, index) => (
                   <div key={index} className="border border-gray-200 rounded-xl overflow-hidden">
-                    <QuestionItem
-                      index={index}
-                      question={q}
-                      updateQuestion={updateQuestion}
-                      updateAnswerSheet={updateAnswerSheet}
-                      removeQuestion={removeQuestion}
-                      handleImageUpload={handleImageUpload}
-                    />
+                    {/* Collapsible Header */}
+                    <div
+                      className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer"
+                      onClick={() => toggleQuestion(index)}
+                    >
+                      <p className="font-semibold">Question {q.q_no}</p>
+                      <span className="text-gray-500">{expandedQuestions[index] ? '−' : '+'}</span>
+                    </div>
+
+                    {/* Collapsible Content */}
+                    {expandedQuestions[index] && (
+                      <div className="p-4">
+                        <QuestionItem
+                          index={index}
+                          question={q}
+                          updateQuestion={updateQuestion}
+                          updateAnswerSheet={updateAnswerSheet}
+                          removeQuestion={removeQuestion}
+                          handleImageUpload={handleImageUpload}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -308,7 +294,7 @@ export default function QuestionForm({ contentType, subjectId, subjectname,class
               <p>Make sure all required fields are filled and questions are complete.</p>
             </div>
             <div className="flex gap-3">
-             <Button 
+              <Button 
                 onClick={addQuestion}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl flex items-center gap-2 text-white font-semibold shadow-lg"
               >

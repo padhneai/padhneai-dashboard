@@ -12,7 +12,7 @@ const id = Number(b)
  const data = await getAllSubjects();
 const subjectData = await getEachSubjectAnalytics();
 const dashbaord = await getDashboadAnalytics()
-// console.log(dashbaord)
+console.log(dashbaord)
 
   
 
