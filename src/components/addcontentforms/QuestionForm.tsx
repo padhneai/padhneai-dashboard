@@ -32,21 +32,24 @@ const PROVINCES = [
 
 interface QuestionFormProps {
   contentType: string;
-  subjectId?: string; // Optional - will use initialData.subject in edit mode
-  classno?: string; // Optional - will use initialData.class_name in edit mode
+  subjectname?: string; // Optional - will use initialData.subject in edit mode
+  subjectId?:string;
+  classname?: string; // Optional - will use initialData.class_name in edit mode
+  classid?:string;
   initialData?: Paper; // Optional initial data for edit mode
   mode?: 'add' | 'edit'; // Mode to determine add or edit
 }
 
-export default function QuestionForm({ contentType, subjectId, classno, initialData, mode = 'add' }: QuestionFormProps) {
+export default function QuestionForm({ contentType, subjectId, subjectname,classname,classid, initialData, mode = 'add' }: QuestionFormProps) {
   // In edit mode, use data from initialData; in add mode, use passed props
-  const actualSubjectId = mode === 'edit' ? (initialData?.subject || subjectId) : (subjectId || '');
-  const actualClassno = mode === 'edit' ? (initialData?.class_name || classno) : (classno || '');
+  const actualSubjectId = mode === 'edit' ? (initialData?.subject.id || subjectId) : (subjectId || '');
+  const actualClassno = mode === 'edit' ? (initialData?.subject.class_level.id || classid) : (classid || '');
   
   const [province, setProvince] = useState<string>(initialData?.province || '');
   const [metadescription, setMetadescription] = useState<string>(initialData?.metadescription || '');
   const [year, setYear] = useState<string>(initialData?.year || '');
   const categorytype = initialData?.question_type || CATEGORY_MAP[contentType] || 'Model Question';
+    const years: number[] = Array.from({ length: 3079 - 2070 + 1 }, (_, i) => 2070 + i);
 
   const [questions, setQuestions] = useState<ExamQuestion[]>(initialData?.questions || []);
 
@@ -132,8 +135,8 @@ export default function QuestionForm({ contentType, subjectId, classno, initialD
 
     const jsonData = {
       province,
-      subject: actualSubjectId,
-      class_name: actualClassno,
+      subject_id: Number(actualSubjectId),
+      class_level_id: Number(actualClassno),
       year,
       metadescription,
       question_type: categorytype,
@@ -145,26 +148,28 @@ export default function QuestionForm({ contentType, subjectId, classno, initialD
       if (mode === 'edit' && initialData?.id) {
         // Update existing paper
         response = await updatePaper(initialData.id, jsonData);
-        console.log('✅ Paper updated:', response);
+        // console.log('✅ Paper updated:', response);
         toast.success('Paper updated successfully!', {
           duration: 5000,
           richColors: true,
         });
       } else {
         // Create new paper
+        console.log(jsonData)
         response = await createPaper(jsonData);
-        console.log('✅ Paper created:', response);
-        toast.success('Paper created successfully!', {
+        // console.log('✅ Paper created:', response);
+        toast.success( "Paper created successfully" , {
           duration: 5000,
           richColors: true,
         });
+        // console.log(response)
         
         // Reset form after successful creation (not for edit)
         resetForm();
       }
       
     } catch (error: any) {
-      console.error('❌ Error submitting paper:', error);
+      // console.error('❌ Error submitting paper:', error);
       const action = mode === 'edit' ? 'update' : 'create';
       toast.error(`Failed to ${action} paper`, {
         duration: 5000,
@@ -228,7 +233,7 @@ export default function QuestionForm({ contentType, subjectId, classno, initialD
                 <SelectTrigger className="border-2 border-gray-200 focus:border-purple-500 rounded-xl px-4 py-3">
                   <SelectValue placeholder="Select Province" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className='bg-white'>
                   {PROVINCES.map((p) => (
                     <SelectItem key={p} value={p} className="py-3">
                       {p}
@@ -259,19 +264,15 @@ export default function QuestionForm({ contentType, subjectId, classno, initialD
         {/* Questions Section */}
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-lg p-8">
-            <div className="flex items-center justify-between mb-6">
+            <div className="
+            flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100 rounded-lg">
                   <Users className="w-5 h-5 text-green-600" />
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900">Questions</h2>
               </div>
-              <Button 
-                onClick={addQuestion}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl flex items-center gap-2 text-white font-semibold shadow-lg"
-              >
-                <Plus className="w-4 h-4" /> Add Question
-              </Button>
+             
             </div>
             
             {questions.length === 0 ? (
@@ -307,6 +308,12 @@ export default function QuestionForm({ contentType, subjectId, classno, initialD
               <p>Make sure all required fields are filled and questions are complete.</p>
             </div>
             <div className="flex gap-3">
+             <Button 
+                onClick={addQuestion}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl flex items-center gap-2 text-white font-semibold shadow-lg"
+              >
+                <Plus className="w-4 h-4" /> Add Question
+              </Button>
               <Button 
                 variant="outline" 
                 className="px-6 py-3 rounded-xl border-2 border-gray-300 hover:border-gray-400"

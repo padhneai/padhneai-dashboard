@@ -16,7 +16,7 @@ export function ClassCard({ title, href }: ClassCardProps) {
         <GraduationCap className="w-8 h-8 text-indigo-500 mb-3" />
         <CardContent className="p-0">
           <span className="text-lg font-medium text-gray-800">
-            Class {title}
+             {title}
           </span>
         </CardContent>
       </Card>

@@ -8,16 +8,17 @@ const page = async({params,searchParams}:RouteParams) => {
   const {classid,subjectid} = await params;
   const {type} = await searchParams;
   
-  const [a,b] = type.split('_') // this is for type (a)
+  // this is for type (a)
   
-  const cl = classid.split("_")[1] //this is for classno
-
+  const [a,b] = classid.split("_")//this is for classno
+  const [c,d] = subjectid.split("_")
+const classname  = decodeURIComponent(a)
   
-  
+  // console.log(type,classname,c,d)
  
   return (
   // <AddContentPage subjectId={subjectid} contentType={type} />
-  <QuestionForm  subjectId={subjectid} contentType={a} classno={cl}/>
+  <QuestionForm  subjectname={c} subjectId={d} contentType={type} classname={classname} classid={b}/>
 
   )
 }

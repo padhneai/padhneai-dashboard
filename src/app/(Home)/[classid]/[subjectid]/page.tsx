@@ -1,17 +1,22 @@
 import SubjectPage from '@/components/customui/SubjectPage'
-import { getAllPapers } from '@/services/paper';
+import { getAllNotes, getAllTOC } from '@/services/notes';
+
 import React from 'react'
 
 const page =async ({params}:RouteParams) => {
     const {subjectid,classid} = await params;
-    const cl = classid.split("_")[1]
+    const [a,b] = classid.split("_")
+    const [c,d]= subjectid.split("_")
+    const classname = decodeURIComponent(a)
+// console.log(classname,b,c,d)
+  // const data = await getAllNotes()
+  const gettoc = await getAllTOC()
+  // console.log(gettoc)
+    const data = await getAllNotes()
 
- const data = await getAllPapers()
-//  console.log(data)
-  
     
   return (
-    <SubjectPage subjectId = {subjectid} classno={classid} data={data} />
+    <SubjectPage subjectname = {c} subjectId={d} classname={classname} classid={b} />
   )
 }
 

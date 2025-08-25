@@ -1,20 +1,12 @@
-import { ClassCard } from '@/components/customui/Class_card'
-
-import { classLevels } from '@/lib/constant'
+import Classes from '@/components/addclass/Classes'
+import { getAllClasses } from '@/services/classes'
 import React from 'react'
 
-const page = () => {
+const page = async () => {
+  const data = await getAllClasses()
+  // console.log(data)
   return (
-     <div className="flex gap-6 justify-center p-6">
-      {classLevels.map((level, idx) => (
-        <ClassCard
-          key={idx}
-          title={level.title}
-         href={level.href}
-        />
-      ))}
-    </div>
- 
+  <Classes />
   )
 }
 

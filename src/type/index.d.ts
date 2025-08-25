@@ -49,15 +49,27 @@ interface ExamQuestion {
   answer_sheet: AnswerSheet;
 }
 
+interface ClassLevel{
+  id:string,
+  name:string,
+
+}
+interface Subjectlevel{
+  class_level:ClassLevel,
+  id:string,
+  name:string,
+}
+
 interface Paper {
   id?: number;
   province: string;
-  subject: string;
-  class_name: string;
+  subject: Subjectlevel;
+  class_level: ClassLevel;
   year: string;
   metadescription: string;
   question_type: string;
   questions: ExamQuestion[];
+  slug:string;
 }
 
 interface QuestionItemProps {
@@ -91,4 +103,41 @@ interface AlertDialogboxProps {
   onAction: () => void;
   onCancel?: () => void;
   variant?: "default" | "destructive";
+}
+
+interface ClassItem {
+  id: number
+  name: string
+}
+
+interface ClassesProps {
+  classdata: ClassItem[] // array of ClassItem
+}
+
+
+
+interface SubjectAnalytics {
+  subject_id: number | string
+  subject_name: string
+  total_10_sets: number
+  total_model_papers: number
+  total_model_questions: number
+  total_notes: number
+  total_questions: number
+}
+interface DashboardAnalytics {
+  total_subjects: number;
+  total_questions: number;
+  total_model_papers: number;
+  total_notes: number;
+  total_10_sets: number;
+}
+
+
+interface NoteToc{
+      chapter_number:string,
+      content_name_english: string,
+      content_name_nepali: string,
+      description_english: string,
+      description_nepali:string,
 }

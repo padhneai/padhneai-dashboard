@@ -31,7 +31,7 @@ export default function DynamicBreadcrumbs() {
     ...segments.map((seg, i) => {
       const href = '/' + segments.slice(0, i + 1).join('/');
       const rawLabel = LABEL_MAP[seg] || capitalize(seg.replace(/[-_]/g, ' '));
-      return { href, label: rawLabel, isHome: false };
+      return { href, label: decodeURIComponent(rawLabel), isHome: false };
     }),
   ];
 
