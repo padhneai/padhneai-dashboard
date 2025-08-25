@@ -1,17 +1,46 @@
 "use client";
+
 import useSWR from "swr";
-import Addclass from "@/components/addclass/Addclass";
 import { ClassCard } from "@/components/customui/Class_card";
-import { getAllClasses } from "@/services/classes";
+import { getAllClasses, deleteClass } from "@/services/classes";
 import React, { useState } from "react";
+import { toast } from "sonner";
+import AlertDialogbox from "@/components/customui/AlertDiologbox";
+import AddOrUpdateClass from "./Addclass";
 
 const Classes = () => {
   const [showAddClass, setShowAddClass] = useState(false);
+  const [showUpdateClass, setShowUpdateClass] = useState(false);
+  const [currentClass, setCurrentClass] = useState<{ id: number; name: string } | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const { data: classdatas, mutate, isLoading } = useSWR("/classes", getAllClasses);
 
   const handleAddSuccess = () => {
     mutate(); // Refresh class list after adding
     setShowAddClass(false);
+  };
+
+  const handleUpdateSuccess = () => {
+    mutate(); // Refresh class list after updating
+    setShowUpdateClass(false);
+    setCurrentClass(null);
+  };
+
+  const handleDelete = async () => {
+    if (deleteId === null) return;
+    setIsDeleting(true);
+    try {
+      await deleteClass(deleteId);
+      toast.success("Class deleted ✅");
+      setDeleteId(null);
+      mutate();
+    } catch (error: any) {
+      toast.error("Failed to delete class ❌");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -33,16 +62,45 @@ const Classes = () => {
           <p className="text-gray-500 text-center col-span-full">Loading classes...</p>
         ) : (
           classdatas?.map((level: any) => (
-            <ClassCard
-              key={level.id}
-              title={level.name}
-              href={`${level.name}_${level.id}`}
-            />
+            <div key={level.id} className="relative">
+              <ClassCard title={level.name} href={`${level.name}_${level.id}`} />
+              <div className="absolute top-2 right-2 flex gap-1">
+                {/* Update Button */}
+                <button
+                  className="bg-yellow-500 text-white px-2 py-1 rounded text-xs"
+                  onClick={() => {
+                    setCurrentClass(level);
+                    setShowUpdateClass(true);
+                  }}
+                >
+                  Edit
+                </button>
+
+                {/* Delete Button */}
+                <AlertDialogbox
+                  trigger={
+                    <button
+                      className="bg-red-500 text-white px-2 py-1 rounded text-xs"
+                      onClick={() => setDeleteId(level.id)}
+                    >
+                      Delete
+                    </button>
+                  }
+                  title="Delete Class"
+                  description="Are you sure you want to delete this class? This action cannot be undone."
+                  cancelText="Cancel"
+                  actionText={isDeleting ? "Deleting..." : "Delete"}
+                  variant="destructive"
+                  onAction={handleDelete}
+                  onCancel={() => setDeleteId(null)}
+                />
+              </div>
+            </div>
           ))
         )}
       </div>
 
-      {/* Modal */}
+      {/* Add Class Modal */}
       {showAddClass && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
           <div className="relative w-full max-w-md p-6 bg-white shadow-2xl rounded-2xl animate-fadeIn">
@@ -52,8 +110,25 @@ const Classes = () => {
             >
               ✕
             </button>
-            <h2 className="text-xl font-semibold mb-4 text-gray-700">Add New Class</h2>
-            <Addclass onSuccess={handleAddSuccess} />
+            <AddOrUpdateClass onSuccess={handleAddSuccess} />
+          </div>
+        </div>
+      )}
+
+      {/* Update Class Modal */}
+      {showUpdateClass && currentClass && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
+          <div className="relative w-full max-w-md p-6 bg-white shadow-2xl rounded-2xl animate-fadeIn">
+            <button
+              onClick={() => setShowUpdateClass(false)}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 transition"
+            >
+              ✕
+            </button>
+            <AddOrUpdateClass
+              classData={currentClass} // pass current class data
+              onSuccess={handleUpdateSuccess}
+            />
           </div>
         </div>
       )}

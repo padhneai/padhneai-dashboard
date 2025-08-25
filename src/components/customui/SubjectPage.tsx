@@ -66,7 +66,7 @@ export default function SubjectPageContainer({
       setPapers(Array.isArray(res) ? res : []);
     } catch (err) {
       setPapers([]);
-      toast.error('Failed to fetch papers');
+      // toast.error('Failed to fetch papers');
     } finally {
       setLoading(false);
     }

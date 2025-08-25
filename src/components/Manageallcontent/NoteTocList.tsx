@@ -8,13 +8,15 @@ import { Plus, Eye, Edit, Trash2, X } from "lucide-react";
 import { getAllTOC, deleteTOC, getAllNotes } from "@/services/notes";
 import { toast } from "sonner";
 import NoteItem from "./Noteitems";
+import AlertDialogbox from "../customui/AlertDiologbox";
+
 
 interface NoteContent {
   id: number;
   title: string;
   description: string;
   toc_entry: {
-    id:number;
+    id: number;
   };
   // add other fields if needed
 }
@@ -30,9 +32,17 @@ export default function NotesTOCList({
   classid: string;
   subjectname: string;
 }) {
-  const { data: tocData, isLoading: tocLoading, mutate: mutateTOC } = useSWR("/getAllTOC", getAllTOC);
-  const { data: notesData, isLoading: notesLoading, mutate: mutateNotes } = useSWR("/getAllnote", getAllNotes);
-console.log(notesData)
+  const {
+    data: tocData,
+    isLoading: tocLoading,
+    mutate: mutateTOC,
+  } = useSWR("/getAllTOC", getAllTOC);
+  const {
+    data: notesData,
+    isLoading: notesLoading,
+    mutate: mutateNotes,
+  } = useSWR("/getAllnote", getAllNotes);
+
   // Filter TOCs by current subject
   const tocList = Array.isArray(tocData)
     ? tocData.filter((t: any) => String(t.subject.id) === String(subjectId))
@@ -63,7 +73,10 @@ console.log(notesData)
       {tocLoading ? (
         <div className="grid gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="p-4 border rounded-lg animate-pulse bg-white shadow-sm">
+            <div
+              key={i}
+              className="p-4 border rounded-lg animate-pulse bg-white shadow-sm"
+            >
               <div className="h-4 bg-gray-300 rounded w-1/3 mb-4"></div>
               <div className="flex gap-2">
                 <div className="h-3 w-10 bg-gray-300 rounded"></div>
@@ -86,7 +99,7 @@ console.log(notesData)
                       Chapter {toc.chapter_number}
                     </Badge>
                     <Badge variant="secondary" className="text-xs">
-                   {toc.subject.name}
+                      {toc.subject.name}
                     </Badge>
                   </div>
                 </div>
@@ -116,38 +129,48 @@ console.log(notesData)
                       <Plus className="w-4 h-4" />
                     </Button>
                   </Link>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700"
-                    onClick={() => onDeleteTOC(toc.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+
+                  {/* Delete with confirmation */}
+                  <AlertDialogbox
+                    trigger={
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    }
+                    title="Delete TOC"
+                    description="Are you sure you want to delete this TOC? This action cannot be undone."
+                    cancelText="Cancel"
+                    actionText="Delete"
+                    variant="destructive"
+                    onAction={() => onDeleteTOC(toc.id)}
+                  />
                 </div>
               </div>
 
               {/* Nested Notes List */}
-          <div className="mt-4 ml-4 space-y-3">
-  {getNotesByTOC(toc.id).length ? (
-    getNotesByTOC(toc.id).map((note: any) => (
-      <NoteItem
-        key={note.id}
-        note={note}
-        classname={classname}
-        classid={classid}
-        subjectname={subjectname}
-        subjectId={subjectId}
-      />
-    ))
-  ) : (
-    <div className="text-center text-gray-400 py-6">
-      <X className="mx-auto w-8 h-8 text-red-400" />
-      <div className="text-sm mt-2">No notes added yet</div>
-    </div>
-  )}
-</div>
-
+              <div className="mt-4 ml-4 space-y-3">
+                {getNotesByTOC(toc.id).length ? (
+                  getNotesByTOC(toc.id).map((note: any) => (
+                    <NoteItem
+                      key={note.id}
+                      note={note}
+                      classname={classname}
+                      classid={classid}
+                      subjectname={subjectname}
+                      subjectId={subjectId}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center text-gray-400 py-6">
+                    <X className="mx-auto w-8 h-8 text-red-400" />
+                    <div className="text-sm mt-2">No notes added yet</div>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>

@@ -4,6 +4,11 @@ import { Edit, FileText, BookOpen, Globe, X } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
+import { deleteNote } from "@/services/notes";
+import { toast } from "sonner";
+import useSWR from "swr";
+import AlertDialogbox from "../customui/AlertDiologbox";
+
 interface NoteItemProps {
   note: any;
   classname: string;
@@ -19,6 +24,18 @@ export default function NoteItem({
   subjectname,
   subjectId,
 }: NoteItemProps) {
+  const { mutate } = useSWR("/getAllnote"); // refresh after delete
+
+  const onDeleteNote = async (id: number) => {
+    try {
+      await deleteNote(id);
+      await mutate();
+      toast.success("Note deleted");
+    } catch (e) {
+      toast.error("Failed to delete note");
+    }
+  };
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-4 rounded-xl shadow hover:shadow-lg transition-shadow duration-200 border border-gray-100">
       {/* Left: Note Info */}
@@ -30,19 +47,39 @@ export default function NoteItem({
         {/* Info Icons */}
         <div className="flex flex-wrap gap-3 text-gray-500 items-center">
           <div className="flex items-center gap-1">
-            <FileText className={`w-4 h-4 ${note.description ? "text-green-500" : "text-red-500"}`} />
+            <FileText
+              className={`w-4 h-4 ${
+                note.long_description_english ? "text-green-500" : "text-red-500"
+              }`}
+            />
             <span className="hidden sm:inline text-xs">Desc EN</span>
           </div>
           <div className="flex items-center gap-1">
-            <BookOpen className={`w-4 h-4 ${note.long_description_nepali ? "text-green-500" : "text-red-500"}`} />
+            <BookOpen
+              className={`w-4 h-4 ${
+                note.long_description_nepali ? "text-green-500" : "text-red-500"
+              }`}
+            />
             <span className="hidden sm:inline text-xs">Desc NP</span>
           </div>
           <div className="flex items-center gap-1">
-            <Globe className={`w-4 h-4 ${note.questions && note.questions.length > 0 ? "text-green-500" : "text-red-500"}`} />
+            <Globe
+              className={`w-4 h-4 ${
+                note.questions && note.questions.length > 0
+                  ? "text-green-500"
+                  : "text-red-500"
+              }`}
+            />
             <span className="hidden sm:inline text-xs">Q EN</span>
           </div>
           <div className="flex items-center gap-1">
-            <BookOpen className={`w-4 h-4 ${note.questions_nepali && note.questions_nepali.length > 0 ? "text-green-500" : "text-red-500"}`} />
+            <BookOpen
+              className={`w-4 h-4 ${
+                note.questions_nepali && note.questions_nepali.length > 0
+                  ? "text-green-500"
+                  : "text-red-500"
+              }`}
+            />
             <span className="hidden sm:inline text-xs">Q NP</span>
           </div>
         </div>
@@ -57,9 +94,25 @@ export default function NoteItem({
             <Edit className="w-4 h-4 text-blue-600" />
           </Button>
         </Link>
-        <Button variant="outline" size="sm" className="hover:bg-red-50 text-red-600">
-          <X className="w-4 h-4" />
-        </Button>
+
+        {/* Delete with confirmation */}
+        <AlertDialogbox
+          trigger={
+            <Button
+              variant="outline"
+              size="sm"
+              className="hover:bg-red-50 text-red-600"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          }
+          title="Delete Note"
+          description="Are you sure you want to delete this note? This action cannot be undone."
+          cancelText="Cancel"
+          actionText="Delete"
+          variant="destructive"
+          onAction={() => onDeleteNote(note.id)}
+        />
       </div>
     </div>
   );

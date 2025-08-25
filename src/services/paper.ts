@@ -28,7 +28,7 @@ export const createPaper = async (payload: any) => {
   // console.log(payload)
   try {
     const { data } = await apiClient.post("/papers/", payload);
-console.log(data)
+// console.log(data)
     return data;
   } catch (error: any) {
     // console.log(error.response)

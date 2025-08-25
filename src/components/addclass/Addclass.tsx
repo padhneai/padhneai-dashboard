@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -15,7 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { createClass } from "@/services/classes"
+import { createClass, updateClass } from "@/services/classes"
 import { toast } from "sonner"
 
 // ✅ Zod schema
@@ -32,28 +32,39 @@ const nameSchema = z.object({
 type NameFormValues = z.infer<typeof nameSchema>
 
 interface AddClassProps {
-  onSuccess?: () => void // ✅ Add callback for parent
+  onSuccess?: () => void
+  classData?: { id: number; name: string } // pass this for update
 }
 
-export default function AddClass({ onSuccess }: AddClassProps) {
+export default function AddOrUpdateClass({ onSuccess, classData }: AddClassProps) {
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<NameFormValues>({
     resolver: zodResolver(nameSchema),
-    defaultValues: { name: "" },
+    defaultValues: { name: classData?.name || "" },
   })
+
+  useEffect(() => {
+    // Update form value if classData changes
+    if (classData) form.reset({ name: classData.name })
+  }, [classData])
 
   const handleSubmit = async (values: NameFormValues) => {
     setIsLoading(true)
     try {
-      await createClass(values)
-      toast.success("Successfully added class ✅")
+      if (classData) {
+        // Update mode
+        await updateClass(classData.id, values)
+        toast.success("Class updated successfully ✅")
+      } else {
+        // Add mode
+        await createClass(values)
+        toast.success("Class added successfully ✅")
+      }
       form.reset()
-      
-      // ✅ Trigger parent to refresh the data
       if (onSuccess) onSuccess()
     } catch (error: any) {
-      toast.error("Failed to add class ❌")
+      toast.error(`Failed to ${classData ? "update" : "add"} class ❌`)
     } finally {
       setIsLoading(false)
     }
@@ -62,7 +73,7 @@ export default function AddClass({ onSuccess }: AddClassProps) {
   return (
     <div className="w-full max-w-md mx-auto mt-10 p-8 bg-white shadow-lg rounded-2xl">
       <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">
-        Add New Class
+        {classData ? "Update Class" : "Add New Class"}
       </h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -84,7 +95,6 @@ export default function AddClass({ onSuccess }: AddClassProps) {
               </FormItem>
             )}
           />
-
           <Button
             type="submit"
             className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold flex items-center justify-center gap-2 hover:bg-blue-700 transition-transform hover:scale-[1.02]"
@@ -112,7 +122,7 @@ export default function AddClass({ onSuccess }: AddClassProps) {
                 ></path>
               </svg>
             ) : (
-              "Submit"
+              classData ? "Update" : "Submit"
             )}
           </Button>
         </form>

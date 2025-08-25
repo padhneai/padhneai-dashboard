@@ -25,7 +25,42 @@ export const createClass = async (payload: any) => {
     const { data } = await apiClient.post("/classes/", payload);
 
     // ✅ Invalidate cache for the page where classes are listed
-    revalidatePath("/classes"); // <-- use the actual route
+    revalidatePath("/"); // <-- use the actual route
+
+    return data;
+  } catch (error: any) {
+    console.error(error);
+        throw new Error(error.message);
+
+  }
+};
+// update  class
+
+
+export const updateClass = async (id:number,payload: any) => {
+  try {
+    const { data } = await apiClient.patch(`/classes/${id}/`, payload);
+
+    // ✅ Invalidate cache for the page where classes are listed
+    revalidatePath("/"); // <-- use the actual route
+
+    return data;
+  } catch (error: any) {
+    console.error(error.response);
+        throw new Error(error.message);
+
+  }
+};
+// delete  class
+
+
+export const deleteClass = async (id:number) => {
+  console.log(id)
+  try {
+    const { data } = await apiClient.delete(`/classes/${id}/`);
+
+    // ✅ Invalidate cache for the page where classes are listed
+    revalidatePath("/"); // <-- use the actual route
 
     return data;
   } catch (error: any) {

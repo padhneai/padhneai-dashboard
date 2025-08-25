@@ -11,7 +11,7 @@ import Texteditor from '../addcontentforms/TextEditor';
 interface NoteContentFormProps {
   tocEntryId: number;
   initialData?: {
-    description?: string;
+    long_description_english?: string;
     long_description_nepali?: string;
     questions_english?: string;
     questions_nepali?: string;
@@ -21,7 +21,7 @@ interface NoteContentFormProps {
 
 export default function NoteContentForm({ tocEntryId, initialData, mode = 'add' }: NoteContentFormProps) {
   const [formData, setFormData] = useState({
-    long_description_english: initialData?.description || "",
+    long_description_english: initialData?.long_description_english || "",
     long_description_nepali: initialData?.long_description_nepali || "",
     questions_english: initialData?.questions_english || "",
     questions_nepali: initialData?.questions_nepali || "",

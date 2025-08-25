@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import TextEditor from './TextEditor';
+import { Textarea } from '@/components/ui/textarea';
 import { Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createTOC, partialUpdateTOC, updateTOC } from '@/services/notes';
@@ -20,7 +20,7 @@ interface StudyNote {
 
 interface StudyNotesProps {
   subjectId?: string;
-  tocid?:number;
+  tocid?: number;
   initialData?: StudyNote;
   mode?: 'add' | 'edit';
 }
@@ -31,7 +31,6 @@ export default function StudyNotes({
   tocid,
   mode = 'add',
 }: StudyNotesProps) {
-  // Form state
   const [formData, setFormData] = useState<StudyNote[] | StudyNote>(
     mode === 'edit'
       ? {
@@ -52,7 +51,6 @@ export default function StudyNotes({
         ]
   );
 
-  // Collapsible state for add mode
   const [showHidden, setShowHidden] = useState<boolean[]>(
     mode === 'add' ? (formData as StudyNote[]).map(() => true) : []
   );
@@ -65,7 +63,6 @@ export default function StudyNotes({
     });
   };
 
-  // Handle changes
   const handleChange = (
     indexOrField: number | keyof StudyNote,
     fieldOrValue: keyof StudyNote | string | number,
@@ -85,7 +82,6 @@ export default function StudyNotes({
     }
   };
 
-  // Add/remove notes in add mode
   const addNote = () => {
     if (mode === 'add') {
       setFormData(prev => [
@@ -101,7 +97,6 @@ export default function StudyNotes({
     setShowHidden(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Submit handler
   const handleSubmit = useCallback(async () => {
     if (mode === 'edit') {
       const note = formData as StudyNote;
@@ -111,7 +106,7 @@ export default function StudyNotes({
       }
 
       try {
-        await partialUpdateTOC(tocid,{ ...note });
+        await partialUpdateTOC(tocid, { ...note });
         toast.success('Note updated successfully!');
       } catch {
         toast.error('Failed to update note');
@@ -132,18 +127,15 @@ export default function StudyNotes({
         toast.error('Failed to create notes');
       }
     }
-  }, [formData, mode, subjectId]);
+  }, [formData, mode, subjectId, tocid]);
 
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-4">
-      {/* Edit Mode */}
       {mode === 'edit' ? (
         <SingleNoteForm note={formData as StudyNote} handleChange={handleChange} />
       ) : (
-        // Add Mode
         (formData as StudyNote[]).map((note, index) => (
           <div key={index} className="border rounded-xl bg-white shadow-sm overflow-hidden">
-            {/* Header */}
             <div
               className="flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-gray-50"
               onClick={() => toggleHidden(index)}
@@ -160,7 +152,6 @@ export default function StudyNotes({
               {showHidden[index] ? <ChevronUp /> : <ChevronDown />}
             </div>
 
-            {/* Collapsible content */}
             {showHidden[index] && (
               <div className="p-4 space-y-4">
                 <NoteForm
@@ -178,7 +169,6 @@ export default function StudyNotes({
         ))
       )}
 
-      {/* Add Note button */}
       {mode === 'add' && (
         <div className="flex justify-end gap-4">
           <Button onClick={addNote} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white">
@@ -187,7 +177,6 @@ export default function StudyNotes({
         </div>
       )}
 
-      {/* Submit */}
       <div className="flex justify-end mt-4">
         <Button onClick={handleSubmit}>{mode === 'edit' ? 'Update' : 'Save All'}</Button>
       </div>
@@ -195,7 +184,7 @@ export default function StudyNotes({
   );
 }
 
-// Form for a single note
+// Reusable Note Form using ShadCN Textarea
 const NoteForm = ({
   note,
   handleChange,
@@ -218,14 +207,13 @@ const NoteForm = ({
     </div>
     <div className="md:col-span-2">
       <Label>Description (English)</Label>
-      <TextEditor content={note.description_english} setContent={value => handleChange('description_english', value)} id="desc-en" label="Description English" />
+      <Textarea value={note.description_english} onChange={e => handleChange('description_english', e.target.value)} rows={4} />
       <Label className="mt-2">Description (Nepali)</Label>
-      <TextEditor content={note.description_nepali} setContent={value => handleChange('description_nepali', value)} id="desc-ne" label="Description Nepali" />
+      <Textarea value={note.description_nepali} onChange={e => handleChange('description_nepali', e.target.value)} rows={4} />
     </div>
   </div>
 );
 
-// Wrapper for edit mode
 const SingleNoteForm = ({
   note,
   handleChange,
