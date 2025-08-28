@@ -8,7 +8,8 @@ export const getAllClasses = async () => {
     const { data } = await apiClient.get("/classes/");
     return data;
   } catch (error: any) {
-        throw new Error(error.message);
+        // throw new Error(error.message);
+        return null;
 
   }
 };

@@ -6,7 +6,7 @@ const page = async({params,searchParams}:RouteParams) => {
     const {id} = await searchParams;
     const tocid = Number(id)
      const data = await getNoteById(tocid)
-        // console.log("this data",data)
+        console.log("this data",data)
   return (
        <NoteContentForm
         tocEntryId={Number(tocid)}

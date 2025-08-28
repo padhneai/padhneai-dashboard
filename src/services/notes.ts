@@ -58,12 +58,12 @@ export const updateNote = async (id: number, payload: any) => {
 
 // Partial update note content
 export const partialUpdateNote = async (id: number, payload: any) => {
-  //  console.log(id,payload)
+   console.log(id,payload)
   try {
     const { data } = await apiClient.patch(`/notes/contents/${id}/`, payload);
     return data;
   } catch (error: any) {
-    // console.log(error.response?.data)
+    console.log(error.response?.data)
 
     throw new Error(error.message);
   }

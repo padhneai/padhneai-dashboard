@@ -1,4 +1,5 @@
 import { Editor } from "@tinymce/tinymce-react";
+
 export default function Texteditor({
   content,
   setContent,
@@ -13,18 +14,18 @@ export default function Texteditor({
   placeholder?: string;
 }) {
   return (
-    <div className="p-5 w-full ">
+    <div className="p-5 w-full">
       <h1 className="text-xl font-bold mb-4">{label}</h1>
       <Editor
-        apiKey="adcqj94qbelb4hxl3u8hliljc3kyf2ceq2flqhen709xvi3b"
-        value={content} // Controlled value
-        onEditorChange={(newContent) => setContent(newContent)} // Update content on change
+        apiKey="vh4laldhiy3tf1ggzo6ipl8oxy4rjq595eih5h4jsfia7b7c"
+        value={content}
+        onEditorChange={(newContent) => setContent(newContent)}
         id={id}
         init={{
-          height: 400,
+          height: 500,
           width: "100%",
           menubar: false,
-          placeholder: placeholder || "Enter your content here...",
+          placeholder: placeholder || "Start writing here...",
           plugins: [
             "anchor",
             "autolink",
@@ -38,19 +39,23 @@ export default function Texteditor({
             "searchreplace",
             "table",
             "visualblocks",
-            "wordcount"
+            "wordcount",
+            "paste",
+            "preview"
           ],
-          
-          
           toolbar:
-            "undo redo | formatselect | bold italic underline strikethrough | " +
+            "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | " +
             "forecolor backcolor | alignleft aligncenter alignright alignjustify | " +
             "bullist numlist outdent indent | blockquote | link image media table | " +
-            "codesample emoticons charmap | removeformat",
-
-          toolbar_mode: "wrap",
+            "codesample emoticons charmap | removeformat preview",
+          toolbar_mode: "sliding", // makes it mobile friendly
           content_style:
-            "body { font-family:Helvetica,Arial,sans-serif; font-size:16px }",
+            "body { font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.6 }",
+          branding: false, // removes TinyMCE watermark
+          elementpath: false, // hides element path at bottom
+          statusbar: false, // hides status bar
+          spellchecker_dialog: true,
+          spellchecker_whitelist: ["PhadneAI", "NextJS"], // custom words
         }}
       />
     </div>
