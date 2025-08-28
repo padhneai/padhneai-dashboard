@@ -17,6 +17,7 @@ export const createSubject = async (payload: any) => {
     const { data } = await apiClient.post("/subjects/", payload);
     return data;
   } catch (error: any) {
+    console.log(error.response.data)
     throw new Error(error.message);
   }
 };

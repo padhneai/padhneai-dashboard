@@ -9,7 +9,8 @@ export const getAllPapers = async () => {
     const { data } = await apiClient.get("/papers/");
     return data;
   } catch (error: any) {
-    throw new Error(error.message);
+    // throw new Error(error.message);
+    return null;
   }
 };
 
@@ -72,7 +73,8 @@ export const getFilteredPapers = async (params?: Record<string, any>) => {
     const { data } = await apiClient.get("/papers/filter/", { params });
     return data;
   } catch (error: any) {
-    throw new Error(error.message);
+    // throw new Error(error.message);
+    return null;
    
 }
 };

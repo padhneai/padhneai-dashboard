@@ -45,10 +45,10 @@ export default function AddSubjectForm({ classId,onSuccess }: AddSubjectFormProp
 
   const onSubmit = async (values: SubjectFormValues) => {
    const {name}= values;
-   const class_level_id = classId;
+   const class_level = classId;
     try {
       setLoading(true)
-      await createSubject({name, class_level_id})
+      await createSubject({name, class_level})
       toast.success("Subject added successfully ✅")
       // Reset the form (keep class_id if provided)
       form.reset({ name: "" })
