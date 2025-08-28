@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { createNote, partialUpdateNote, updateNote } from '@/services/notes';
 import Texteditor from '../addcontentforms/TextEditor';
+import { Input } from '../ui/input';
 
 interface NoteContentFormProps {
   tocEntryId: number;
@@ -15,6 +16,7 @@ interface NoteContentFormProps {
     long_description_nepali?: string;
     questions_english?: string;
     questions_nepali?: string;
+    image?:File;
   };
   mode?: 'add' | 'edit';
 }
@@ -25,9 +27,10 @@ export default function NoteContentForm({ tocEntryId, initialData, mode = 'add' 
     long_description_nepali: initialData?.long_description_nepali || "",
     questions_english: initialData?.questions_english || "",
     questions_nepali: initialData?.questions_nepali || "",
+    image:initialData?.image || null
   });
 
-  const handleChange = useCallback((field: string, value: string) => {
+  const handleChange = useCallback((field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
 
@@ -108,6 +111,16 @@ export default function NoteContentForm({ tocEntryId, initialData, mode = 'add' 
           label="Questions Nepali"
         />
       </div>
+
+
+      <div>
+  <Label>Image</Label>
+  <Input 
+    type="file" 
+    accept="image/*" 
+    onChange={e => handleChange('image', e.target.files?.[0] || null)} 
+  />
+</div>
 
       <div className="flex justify-end">
         <Button onClick={handleSubmit} className="bg-indigo-600 text-white px-6 py-2 rounded-xl">

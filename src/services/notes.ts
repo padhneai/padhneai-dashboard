@@ -36,12 +36,23 @@ export const getNoteBySlug = async (slug: string) => {
 };
 
 // Create new note content
-export const createNote = async (payload: any) => {
+export const createNote = async (payload: Record<string, any>) => {
   try {
-    const { data } = await apiClient.post("/notes/contents/", payload);
+    const formData = new FormData();
+
+    Object.entries(payload).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        // Handle arrays (e.g., multiple files or tags)
+        value.forEach((v) => formData.append(key, v));
+      } else {
+        formData.append(key, value);
+      }
+    });
+
+    const { data } = await apiClient.post("/notes/contents/", formData);
     return data;
   } catch (error: any) {
-    throw new Error(error.message);
+    throw new Error(error.response?.data?.detail || error.message);
   }
 };
 
