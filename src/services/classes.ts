@@ -30,7 +30,7 @@ export const createClass = async (payload: any) => {
 
     return data;
   } catch (error: any) {
-    console.error(error);
+    console.log(error);
         throw new Error(error.message);
 
   }

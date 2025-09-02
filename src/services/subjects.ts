@@ -7,7 +7,8 @@ export const getAllSubjects = async () => {
     const { data } = await apiClient.get("/subjects/");
     return data;
   } catch (error: any) {
-    throw new Error(error.message);
+    // throw new Error(error.message);
+    return null;
   }
 };
 

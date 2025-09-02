@@ -7,7 +7,8 @@ export const getDashboadAnalytics = async () => {
     const { data } = await apiClient.get("/dashboard/stats/");
     return data;
   } catch (error: any) {
-        throw new Error(error.message);
+        // throw new Error(error.message);
+        return null;
 
   }
 };
@@ -17,7 +18,8 @@ export const getEachSubjectAnalytics = async () => {
     const { data } = await apiClient.get("/dashboard/subjects/analytics");
     return data;
   } catch (error: any) {
-        throw new Error(error.message);
+        // throw new Error(error.message);
+        return null;
 
   }
 };

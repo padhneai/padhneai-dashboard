@@ -103,7 +103,7 @@ export default function QuestionForm({ contentType, subjectId, subjectname, clas
     reader.onloadend = () => {
       const url = reader.result as string;
       if (type === 'question') {
-        updateQuestion(index, 'question_image', url);
+        updateQuestion(index, 'question_image', url); 
       } else {
         updateAnswerSheet(index, 'answer_image', url);
       }

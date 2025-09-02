@@ -1,3 +1,4 @@
+// import { Timestamp } from "firebase/firestore";
 interface RouteParams {
   params: Promise<Record<string, string>>;
   searchParams: Promise<Record<string, string>>;
@@ -140,4 +141,49 @@ interface NoteToc{
       content_name_nepali: string,
       description_english: string,
       description_nepali:string,
+}
+
+
+interface User {
+  name: string;
+  email: string;
+  id: string;
+  
+}
+
+interface SignInParams {
+  email: string;
+  idToken: string;
+}
+
+interface SignUpParams {
+  uid: string;
+  name: string;
+  email: string;
+  password: string;
+}
+
+
+ interface UserInfo {
+  id: string;
+  name: string;
+  email: string;
+  role: "admin" | "user"; // if you only have these two roles
+  createdAt: Date ;
+  tokenVerified?:boolean;
+
+}
+
+interface UserInfoprops{
+  data:UserInfo
+}
+
+ interface Token {
+  value: string;
+  createdAt: Date;
+  usedBy?: string | null;
+  expiresAt?: Date | null;
+  tokenVerified?:boolean;
+  usedemail?: string | null;
+
 }
