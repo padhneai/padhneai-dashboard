@@ -10,6 +10,7 @@ import QuestionItem from './QuestionItem';
 import { createPaper, updatePaper } from '@/services/paper';
 import { toast } from 'sonner';
 import { FileQuestion, MapPin, Calendar, Plus, Save, BookOpen, Users, Award } from 'lucide-react';
+import axios from 'axios';
 
 // Category & Province options
 const CATEGORY_MAP: Record<string, string> = {
@@ -94,22 +95,127 @@ export default function QuestionForm({ contentType, subjectId, subjectname, clas
     setQuestions(updated);
   };
 
-  const handleImageUpload = (file: File, index: number, type: 'question' | 'answer') => {
-    if (file.size > 2 * 1024 * 1024) {
-      alert('File size must be under 2MB');
+  // const handleImageUpload = (file: File, index: number, type: 'question' | 'answer') => {
+  //   if (file.size > 2 * 1024 * 1024) {
+  //     alert('File size must be under 2MB');
+  //     return;
+  //   }
+  //   const reader = new FileReader();
+  //   reader.onloadend = () => {
+  //     const url = reader.result as string;
+  //     if (type === 'question') {
+  //       updateQuestion(index, 'question_image', url); 
+  //     } else {
+  //       updateAnswerSheet(index, 'answer_image', url);
+  //     }
+  //   };
+  //   reader.readAsDataURL(file);
+  // };
+
+
+
+  const handleImageUpload = async (file: File, index: number, type: 'question' | 'answer') => {
+  if (file.size > 2 * 1024 * 1024) {
+    alert('File size must be under 2MB');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const response = await axios.post('/api/imageupload/', formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    const publicId = response.data?.public_id; // <- backend must return this
+
+    if (!publicId) {
+      toast.error("Upload failed: no public_id returned");
       return;
     }
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const url = reader.result as string;
-      if (type === 'question') {
-        updateQuestion(index, 'question_image', url); 
-      } else {
-        updateAnswerSheet(index, 'answer_image', url);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
+
+    if (type === 'question') {
+      updateQuestion(index, 'question_image', publicId); 
+    } else {
+      updateAnswerSheet(index, 'answer_image', publicId);
+    }
+  } catch (error) {
+    console.error("Image upload failed:", error);
+    toast.error("Failed to upload image");
+  }
+};
+
+
+const handleImageUpdate = async (file: File, currentPublicId: string, index: number, type: 'question' | 'answer') => {
+  if (!currentPublicId) {
+    // fallback: if no previous image, just upload
+    await handleImageUpload(file, index, type);
+    toast.success("Image uploaded successfully");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("oldPublicId", currentPublicId);
+
+  try {
+    const response = await axios.put('/api/imageupload/', formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    const newPublicId = response.data?.publicId;
+    if (!newPublicId) {
+      toast.error("Update failed: no publicId returned");
+      return;
+    }
+
+    // Update local state
+    if (type === 'question') {
+      updateQuestion(index, 'question_image', newPublicId);
+    } else {
+      updateAnswerSheet(index, 'answer_image', newPublicId);
+    }
+
+    toast.success("Image updated successfully");
+  } catch (error) {
+    console.error("Image update failed:", error);
+    toast.error("Failed to update image");
+  }
+};
+
+
+const handleImageDelete = async (index: number, type: 'question' | 'answer') => {
+  try {
+    const imageId = type === 'question'
+      ? questions[index].question_image
+      : questions[index].answer_sheet.answer_image;
+
+    if (!imageId) {
+      toast.error("No image to delete");
+      return;
+    }
+
+    // Call backend delete endpoint
+    await axios.post("/api/imagedelete", { publicId: imageId });
+
+    // Update state: clear the image
+    if (type === 'question') {
+      updateQuestion(index, 'question_image', null);
+    } else {
+      updateAnswerSheet(index, 'answer_image', null);
+    }
+
+    toast.success("Image deleted successfully");
+  } catch (error) {
+    console.error("Delete failed:", error);
+    toast.error("Failed to delete image");
+  }
+};
+
+
+
+
 
   const resetForm = () => {
     setProvince('');
@@ -133,7 +239,7 @@ export default function QuestionForm({ contentType, subjectId, subjectname, clas
     const jsonData = {
       province,
       subject_id: Number(actualSubjectId),
-      class_level_id: Number(actualClassno),
+      class_level_id: Number(actualClassno), 
       year,
       metadescription,
       question_type: categorytype,
@@ -145,6 +251,9 @@ export default function QuestionForm({ contentType, subjectId, subjectname, clas
         await updatePaper(initialData.id, jsonData);
         toast.success('Paper updated successfully!', { duration: 5000, richColors: true });
       } else {
+        await axios.post('/api/imageupload/', {
+          file: questions[0].question_image,
+        });
         await createPaper(jsonData);
         toast.success('Paper created successfully!', { duration: 5000, richColors: true });
         resetForm();
@@ -276,6 +385,8 @@ export default function QuestionForm({ contentType, subjectId, subjectname, clas
                           updateAnswerSheet={updateAnswerSheet}
                           removeQuestion={removeQuestion}
                           handleImageUpload={handleImageUpload}
+                          handleImageUpdate={handleImageUpdate}
+                          handleImageDelete={handleImageDelete}
                         />
                       </div>
                     )}

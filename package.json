@@ -23,6 +23,7 @@
     "@tinymce/tinymce-react": "^6.3.0",
     "axios": "^1.11.0",
     "class-variance-authority": "^0.7.1",
+    "cloudinary": "^2.7.0",
     "clsx": "^2.1.1",
     "firebase": "^12.2.1",
     "firebase-admin": "^13.5.0",
