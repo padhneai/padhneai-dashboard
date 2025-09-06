@@ -13,11 +13,13 @@ export default function Texteditor({
   id: string;
   placeholder?: string;
 }) {
+  const apikey  = process.env.NEXT_PUBLIC_TINYMCE_API_KEY!;
+  
   return (
     <div className="p-5 w-full">
       <h1 className="text-xl font-bold mb-4">{label}</h1>
       <Editor
-        apiKey="vh4laldhiy3tf1ggzo6ipl8oxy4rjq595eih5h4jsfia7b7c"
+        apiKey={apikey}
         value={content}
         onEditorChange={(newContent) => setContent(newContent)}
         id={id}
