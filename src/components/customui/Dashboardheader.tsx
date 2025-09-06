@@ -10,11 +10,31 @@ import {
 import { useRouter } from "next/navigation";
 
 import LogoutButton from "./LogoutButton";
-import { UserInfoprops } from "../../types";
+import { Code, ThermometerSnowflakeIcon } from "lucide-react";
+import { signOut } from "firebase/auth";
+import { logout } from "@/Firebase/firebaseaction/auth.action";
+import { auth } from "@/Firebase/client";
+import { toast } from "sonner";
+// import { UserInfoprops } from "../../types";
 
 const DashboardHeader = ({ data }: UserInfoprops) => {
   const user = data;
   const router = useRouter();
+
+
+
+   
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // clear session / cookies
+      await logout()
+      router.push("/sign-in"); // redirect to login page
+      toast.success("User Logout")
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  };
 
   // Fallbacks if user data is missing
   const name = user?.name || "Guest User";
@@ -65,17 +85,19 @@ const DashboardHeader = ({ data }: UserInfoprops) => {
                 {/* Admin only menu */}
                 {role === "admin" && (
                   <DropdownMenuItem
-                    className="hover:bg-blue-100 hover:text-blue-600 cursor-pointer transition-colors duration-200"
+                    className="hover:bg-blue-100 p-4 hover:text-blue-600 cursor-pointer transition-colors duration-200"
                     onClick={() => router.push("/generateToken")}
                   >
+                    <Code className="mr-2 h-4 w-4" />
                     Generate Token
                   </DropdownMenuItem>
                 )}
 
                 <DropdownMenuItem
+                  onClick={handleLogout}
                   className="hover:bg-blue-100 hover:text-blue-600 cursor-pointer transition-colors duration-200"
                 >
-                  <LogoutButton />
+                  <LogoutButton />Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

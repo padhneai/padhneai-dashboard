@@ -31,6 +31,7 @@ const signupSchema = z.object({
 type SignupValues = z.infer<typeof signupSchema>
 
 export default function SignupForm() {
+
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -40,19 +41,22 @@ export default function SignupForm() {
   })
 
   const onSubmit = async (values: SignupValues) => {
-    const {email,password,name} = values;
-console.log(values)
+    const { email, password, name } = values;
+    console.log(values)
     try {
       setLoading(true)
       // 🔥 API call to register user here
-        const userCredentials = await createUserWithEmailAndPassword(auth,email,password)
- 
-           const result = await signUp({
-          uid:userCredentials.user.uid,
-          name:name!,
-          email:email,
-          password:password,
-        })
+      const userCredentials = await createUserWithEmailAndPassword(auth, email, password)
+      
+      // console.log("User created:", userCredentials.user.uid)
+
+      const result = await signUp({
+        uid: userCredentials.user.uid,
+        name: name!,
+        email: email,
+        password: password,
+      })
+
     
         if(!result?.success){
           toast.error(result?.message);
