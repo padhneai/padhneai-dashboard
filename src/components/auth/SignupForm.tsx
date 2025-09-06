@@ -16,7 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { signUp } from "@/Firebase/firebaseaction/auth.action"
+import { signIn, signUp } from "@/Firebase/firebaseaction/auth.action"
 import { useRouter } from "next/navigation"
 import { auth } from "@/Firebase/client"
 import { createUserWithEmailAndPassword } from "firebase/auth"
@@ -40,40 +40,56 @@ export default function SignupForm() {
     defaultValues: { name: "", email: "", password: "" },
   })
 
-  const onSubmit = async (values: SignupValues) => {
-    const { email, password, name } = values;
-    console.log(values)
-    try {
-      setLoading(true)
-      // 🔥 API call to register user here
-      const userCredentials = await createUserWithEmailAndPassword(auth, email, password)
-      
-      // console.log("User created:", userCredentials.user.uid)
+ const onSubmit = async (values: SignupValues) => {
+  const { email, password, name } = values;
+  try {
+    setLoading(true);
 
-      const result = await signUp({
-        uid: userCredentials.user.uid,
-        name: name!,
-        email: email,
-        password: password,
-      })
+    // 1️⃣ Create Firebase Auth user
+    const userCred = await createUserWithEmailAndPassword(auth, email, password);
 
-    
-        if(!result?.success){
-          toast.error(result?.message);
-          return;
-        }
+    // 2️⃣ Create Firestore user
+    const result = await signUp({
+      uid: userCred.user.uid,
+      name: name!,
+      email,
+      password,
+    });
 
-      // await signUp(values)
-      toast.success("Account created successfully 🎉")
-      router.push("/sign-in")
-      form.reset()
-    } catch (err) {
-      toast.error("Signup failed ")
-      console.log("this is ",err)
-    } finally {
-      setLoading(false)
+    if (!result.success) {
+      toast.error(result.message);
+      return;
     }
+
+    // 3️⃣ Get ID token from the same user (no need to sign in again)
+    const idToken = await userCred.user.getIdToken();
+
+    // 4️⃣ Call server-side signIn to set session cookie
+    const res = await signIn({ email, idToken });
+
+    if (!res.success) {
+      toast.error(res.message);
+      return;
+    }
+
+    toast.success(res.message);
+
+    // 5️⃣ Redirect based on role / token requirement
+    if (res.redirectTo === "/token" && res.uid) {
+      router.push(`/verify-token?user=${res.uid}`);
+    } else {
+      router.push(res.redirectTo || "/");
+    }
+
+    form.reset();
+  } catch (err) {
+    console.error(err);
+    toast.error("Signup failed");
+  } finally {
+    setLoading(false);
   }
+};
+
 
   return (
  <div className="w-full max-w-md mx-auto p-8 bg-zinc-900 text-white shadow-lg rounded-2xl border border-zinc-800">
