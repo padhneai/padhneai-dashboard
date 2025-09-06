@@ -1,4 +1,5 @@
-'use server'
+"use server";
+
 
 import { db , auth } from "@/Firebase/admin";
 import { Timestamp } from "firebase-admin/firestore";
@@ -22,6 +23,7 @@ export async function signUp(params: SignUpParams) {
 
   try {
     const userRecord = await db.collection('users').doc(uid).get();
+    
     if (userRecord.exists) {
       return {
         success: false,
