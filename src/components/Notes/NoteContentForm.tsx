@@ -8,6 +8,7 @@ import { createNote, partialUpdateNote } from '@/services/notes';
 import Texteditor from '../addcontentforms/TextEditor';
 import { Input } from '../ui/input';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import LoadingOverlay from '../Loading/LoadingOverlay';
 
 interface NoteContentFormProps {
   tocEntryId: number;
@@ -33,6 +34,8 @@ export default function NoteContentForm({
     questions_nepali: initialData?.questions_nepali || '',
     image: initialData?.image || null,
   });
+  const [submitting, setSubmitting] = useState<'idle' | 'loading' | 'success'>('idle');
+
 
   const [openSections, setOpenSections] = useState({
     longNepali: false,
@@ -56,6 +59,8 @@ export default function NoteContentForm({
     }
 
     try {
+            setSubmitting('loading');
+
       if (mode === 'edit') {
         await partialUpdateNote(tocEntryId, { ...formData });
         toast.success('Note updated successfully!');
@@ -63,8 +68,16 @@ export default function NoteContentForm({
         await createNote({ toc_entry_id: tocEntryId, ...formData });
         toast.success('Note created successfully!');
       }
+
+          // Show success overlay
+      setSubmitting('success');
+      setTimeout(() => {
+        setSubmitting('idle');
+      }, 2000);
     } catch (err) {
       toast.error('Failed to save note content');
+        setSubmitting('idle');
+
     }
   }, [formData, tocEntryId, mode]);
 
@@ -192,6 +205,11 @@ export default function NoteContentForm({
           {mode === 'edit' ? 'Update Note Content' : 'Create Note Content'}
         </Button>
       </div>
+
+
+       {submitting !== 'idle' && (
+              <LoadingOverlay submitting={submitting} mode={mode} />
+            )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createTOC, partialUpdateTOC } from '@/services/notes';
+import LoadingOverlay from '../Loading/LoadingOverlay';
 
 interface StudyNote {
   id?: number;
@@ -54,6 +55,8 @@ export default function StudyNotes({
   const [showHidden, setShowHidden] = useState<boolean[]>(
     mode === 'add' ? (formData as StudyNote[]).map(() => true) : []
   );
+
+const [submitting, setSubmitting] = useState<'idle' | 'loading' | 'success'>('idle');
 
   const toggleHidden = (index: number) => {
     setShowHidden(prev => {
@@ -104,11 +107,23 @@ export default function StudyNotes({
         toast.error('Please fill chapter number, content name, and description');
         return;
       }
+      
       try {
+         setSubmitting('loading');
+          //@ts-ignore
         await partialUpdateTOC(tocid, { ...note });
         toast.success('Note updated successfully!');
+
+
+          // Show success overlay
+      setSubmitting('success');
+      setTimeout(() => {
+        setSubmitting('idle');
+      }, 2000);
       } catch {
         toast.error('Failed to update note');
+        setSubmitting('idle');
+
       }
     } else {
       const notes = formData as StudyNote[];
@@ -119,10 +134,21 @@ export default function StudyNotes({
         }
       }
       try {
+            setSubmitting('loading');
+
+
         await createTOC(notes.map(note => ({ ...note, subject_id: Number(subjectId) })));
         toast.success('Notes created successfully!');
+
+            // Show success overlay
+      setSubmitting('success');
+      setTimeout(() => {
+        setSubmitting('idle');
+      }, 2000);
       } catch {
         toast.error('Failed to create notes');
+        setSubmitting('idle');
+
       }
     }
   }, [formData, mode, subjectId, tocid]);
@@ -210,6 +236,11 @@ export default function StudyNotes({
           {mode === 'edit' ? 'Update Note' : 'Save All Notes'}
         </Button>
       </div>
+
+
+       {submitting !== 'idle' && (
+        <LoadingOverlay submitting={submitting} mode={mode} />
+      )}
     </div>
   );
 }

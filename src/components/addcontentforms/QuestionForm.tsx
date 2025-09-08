@@ -11,6 +11,7 @@ import { createPaper, updatePaper } from '@/services/paper';
 import { toast } from 'sonner';
 import { FileQuestion, MapPin, Calendar, Plus, Save, BookOpen, Users, Award } from 'lucide-react';
 import axios from 'axios';
+import LoadingOverlay from '../Loading/LoadingOverlay';
 
 // Category & Province options
 const CATEGORY_MAP: Record<string, string> = {
@@ -41,7 +42,8 @@ interface QuestionFormProps {
 
 export default function QuestionForm({ contentType, subjectId, subjectname, classname, classid, initialData, mode = 'add' }: QuestionFormProps) {
   const actualSubjectId = mode === 'edit' ? (initialData?.subject.id || subjectId) : (subjectId || '');
-  const actualClassno = mode === 'edit' ? (initialData?.subject.class_level.id || classid) : (classid || '');
+  const actualClassno = mode === 'edit' ? (initialData?.subject.class_level || classid) : (classid || '');
+const [submitting, setSubmitting] = useState<'idle' | 'loading' | 'success'>('idle');
 
   const [province, setProvince] = useState<string>(initialData?.province || '');
   const [metadescription, setMetadescription] = useState<string>(initialData?.metadescription || '');
@@ -225,6 +227,7 @@ const handleImageDelete = async (index: number, type: 'question' | 'answer') => 
     setExpandedQuestions([]);
   };
 
+   // handleSubmit with overlay
   const handleSubmit = async () => {
     if (!province || !metadescription || !year) {
       toast.warning('Please fill in all main fields');
@@ -239,7 +242,7 @@ const handleImageDelete = async (index: number, type: 'question' | 'answer') => 
     const jsonData = {
       province,
       subject_id: Number(actualSubjectId),
-      class_level_id: Number(actualClassno), 
+      class_level_id: Number(actualClassno),
       year,
       metadescription,
       question_type: categorytype,
@@ -247,24 +250,32 @@ const handleImageDelete = async (index: number, type: 'question' | 'answer') => 
     };
 
     try {
+      setSubmitting('loading');
+
       if (mode === 'edit' && initialData?.id) {
         await updatePaper(initialData.id, jsonData);
-        toast.success('Paper updated successfully!', { duration: 5000, richColors: true });
+        toast.success('Paper updated successfully!');
       } else {
-       console.log(jsonData)
         await createPaper(jsonData);
-        toast.success('Paper created successfully!', { duration: 5000, richColors: true });
+        toast.success('Paper created successfully!');
         resetForm();
       }
-    } catch (error: any) {
-      console.log(error)
+
+      // Show success overlay
+      setSubmitting('success');
+      setTimeout(() => {
+        setSubmitting('idle');
+      }, 2000);
+    } catch (error) {
+      console.error(error);
       const action = mode === 'edit' ? 'update' : 'create';
-      toast.error(`Failed to ${action} paper`, { duration: 5000, richColors: true });
+      toast.error(`Failed to ${action} paper`);
+      setSubmitting('idle');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-100">
+    <div className="relative min-h-screen bg-gradient-to-br from-purple-50 to-blue-100">
       <div className="max-w-7xl mx-auto p-6">
         {/* Header Section */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
@@ -427,6 +438,14 @@ const handleImageDelete = async (index: number, type: 'question' | 'answer') => 
           </div>
         </div>
       </div>
+
+
+      
+ {submitting !== 'idle' && (
+  <LoadingOverlay submitting={submitting} mode={mode} />
+)}
+
+     
     </div>
   );
 }

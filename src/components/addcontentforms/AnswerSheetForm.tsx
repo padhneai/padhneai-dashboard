@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Texteditor from './TextEditor';
+import { Loader2 } from 'lucide-react';
 
 interface AnswerSheetFormProps {
   index: number;
@@ -11,9 +13,21 @@ interface AnswerSheetFormProps {
     field: K,
     value: ExamQuestion['answer_sheet'][K]
   ) => void;
-  handleImageUpload: (file: File, index: number, type: 'question' | 'answer') => void;
-  handleImageUpdate?: (file: File, currentPublicId: string | null , index: number, type: 'question' | 'answer') => void;
-  handleImageDelete?: (index: number, type: 'question' | 'answer') => void ;
+  handleImageUpload: (
+    file: File,
+    index: number,
+    type: 'question' | 'answer'
+  ) => Promise<void> | void;
+  handleImageUpdate?: (
+    file: File,
+    currentPublicId: string,
+    index: number,
+    type: 'question' | 'answer'
+  ) => Promise<void> | void;
+  handleImageDelete?: (
+    index: number,
+    type: 'question' | 'answer'
+  ) => Promise<void> | void;
 }
 
 export default function AnswerSheetForm({
@@ -24,9 +38,41 @@ export default function AnswerSheetForm({
   handleImageUpdate,
   handleImageDelete,
 }: AnswerSheetFormProps) {
+  const [loading, setLoading] = useState<'upload' | 'update' | 'delete' | null>(null);
+
   const currentImage = answer_sheet.answer_image;
   const currentImageUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/${currentImage}`;
 
+  const onUpload = async (file: File) => {
+    try {
+      setLoading('upload');
+      await handleImageUpload(file, index, 'answer');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const onUpdate = async (file: File) => {
+    try {
+      setLoading('update');
+      await handleImageUpdate?.(file, currentImage ?? '', index, 'answer');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const onDelete = async () => {
+    try {
+      setLoading('delete');
+      if (handleImageDelete) {
+        await handleImageDelete(index, 'answer');
+      } else {
+        updateAnswerSheet(index, 'answer_image', null);
+      }
+    } finally {
+      setLoading(null);
+    }
+  };
 
   return (
     <div>
@@ -53,20 +99,29 @@ export default function AnswerSheetForm({
       {/* Answer Image */}
       <div className="border-2 border-dashed rounded-lg p-4 text-center hover:bg-gray-50 mt-4">
         {!currentImage ? (
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                if (file.size > 2 * 1024 * 1024) {
-                  alert("Image size should be under 2MB");
-                  return;
+          <label className="cursor-pointer inline-flex items-center gap-2 text-sm text-blue-600 font-medium">
+            {loading === 'upload' ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              'Upload Image'
+            )}
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*"
+              disabled={loading === 'upload'}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  if (file.size > 2 * 1024 * 1024) {
+                    alert('Image size should be under 2MB');
+                    return;
+                  }
+                  onUpload(file);
                 }
-                handleImageUpload(file, index, 'answer');
-              }
-            }}
-          />
+              }}
+            />
+          </label>
         ) : (
           <div className="relative inline-block">
             <Image
@@ -78,28 +133,36 @@ export default function AnswerSheetForm({
             />
             <div className="absolute top-0 right-0 flex flex-col gap-1">
               {/* Update Button */}
-             <label className="bg-blue-500 text-white text-xs px-2 py-1 rounded cursor-pointer">
-    Update
-    <input
-      type="file"
-      className="hidden"
-      accept="image/*"
-      onChange={(e) => {
-        const file = e.target.files?.[0];
-        if (file && handleImageUpdate) {
-          handleImageUpdate(file, answer_sheet.answer_image ?? null, index, 'answer');
-        }
-      }}
-    />
-  </label>
+              <label className="bg-blue-500 text-white text-xs px-2 py-1 rounded cursor-pointer flex items-center justify-center">
+                {loading === 'update' ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  'Update'
+                )}
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  disabled={loading === 'update'}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) onUpdate(file);
+                  }}
+                />
+              </label>
 
               {/* Delete Button */}
               <button
                 type="button"
-                className="bg-red-500 text-white text-xs px-2 py-1 rounded"
-                onClick={() => handleImageDelete && handleImageDelete(index, 'answer')}
+                className="bg-red-500 text-white text-xs px-2 py-1 rounded flex items-center justify-center"
+                onClick={onDelete}
+                disabled={loading === 'delete'}
               >
-                Delete
+                {loading === 'delete' ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  'Delete'
+                )}
               </button>
             </div>
           </div>

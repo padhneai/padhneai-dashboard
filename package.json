@@ -27,6 +27,7 @@
     "clsx": "^2.1.1",
     "firebase": "^12.2.1",
     "firebase-admin": "^13.5.0",
+    "framer-motion": "^12.23.12",
     "lexical": "^0.34.0",
     "lodash.throttle": "^4.1.1",
     "lucide-react": "^0.536.0",

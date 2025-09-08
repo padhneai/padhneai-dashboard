@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import AnswerSheetForm from './AnswerSheetForm';
 import Texteditor from './TextEditor';
+import { Loader2 } from 'lucide-react'; // spinner icon
 
 interface QuestionItemProps {
   index: number;
@@ -20,10 +21,9 @@ interface QuestionItemProps {
     value: AnswerSheet[keyof AnswerSheet]
   ) => void;
   removeQuestion: (index: number) => void;
-  handleImageUpload: (file: File, index: number, type: 'question' | 'answer') => void;
-  handleImageUpdate?: (file: File, currentPublicId: string | null, index: number, type: 'question' | 'answer') => void;
-
-  handleImageDelete?: (index: number, type: 'question' | 'answer') => void;
+  handleImageUpload: (file: File, index: number, type: 'question' | 'answer') => Promise<void> | void;
+  handleImageUpdate?: (file: File, currentPublicId: string, index: number, type: 'question' | 'answer') => Promise<void> | void;
+  handleImageDelete?: (index: number, type: 'question' | 'answer') => Promise<void> | void;
 }
 
 export default function QuestionItem({
@@ -37,8 +37,41 @@ export default function QuestionItem({
   handleImageDelete
 }: QuestionItemProps) {
   const [showMore, setShowMore] = useState(false);
+  const [loading, setLoading] = useState<'upload' | 'update' | 'delete' | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/${question.question_image}`;
+
+  const onUpload = async (file: File) => {
+    try {
+      setLoading('upload');
+      await handleImageUpload(file, index, 'question');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const onUpdate = async (file: File) => {
+    try {
+      setLoading('update');
+      await handleImageUpdate?.(file, question.question_image, index, 'question');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const onDelete = async () => {
+    try {
+      setLoading('delete');
+      if (handleImageDelete) {
+        await handleImageDelete(index, 'question');
+      } else {
+        updateQuestion(index, 'question_image', null);
+      }
+    } finally {
+      setLoading(null);
+    }
+  };
 
   return (
     <div className="border p-4 rounded-md space-y-4">
@@ -93,8 +126,8 @@ export default function QuestionItem({
               onChange={(e) => {
                 if (e.target.files?.[0]) {
                   question.question_image
-                    ? handleImageUpdate?.(e.target.files[0], question.question_image, index, 'question')
-                    : handleImageUpload(e.target.files[0], index, 'question');
+                    ? onUpdate(e.target.files[0])
+                    : onUpload(e.target.files[0]);
                 }
               }}
             />
@@ -107,25 +140,43 @@ export default function QuestionItem({
                   className="max-h-40 rounded shadow"
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => fileInputRef.current?.click()}>
-                    Update
+                  <Button
+                    size="sm"
+                    disabled={loading === 'update'}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {loading === 'update' ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      'Update'
+                    )}
                   </Button>
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() =>
-                      handleImageDelete
-                        ? handleImageDelete(index, 'question')
-                        : updateQuestion(index, 'question_image', null)
-                    }
+                    disabled={loading === 'delete'}
+                    onClick={onDelete}
                   >
-                    Delete
+                    {loading === 'delete' ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      'Delete'
+                    )}
                   </Button>
                 </div>
               </div>
             ) : (
-              <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                Upload Image
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={loading === 'upload'}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {loading === 'upload' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Upload Image'
+                )}
               </Button>
             )}
           </div>
