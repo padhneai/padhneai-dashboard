@@ -128,10 +128,11 @@ export default function QuestionForm({ contentType, subjectId, subjectname, clas
       headers: { "Content-Type": "multipart/form-data" },
     });
 
-    const publicId = response.data?.public_id; // <- backend must return this
+    const publicId = response.data?.publicId; // <- backend must return this
+console.log(response)
 
     if (!publicId) {
-      toast.error("Upload failed: no public_id returned");
+      toast.error("Upload failed: no publicId returned");
       return;
     }
 
@@ -163,7 +164,6 @@ const handleImageUpdate = async (file: File, currentPublicId: string, index: num
     const response = await axios.put('/api/imageupload/', formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-
     const newPublicId = response.data?.publicId;
     if (!newPublicId) {
       toast.error("Update failed: no publicId returned");
@@ -227,12 +227,12 @@ const handleImageDelete = async (index: number, type: 'question' | 'answer') => 
 
   const handleSubmit = async () => {
     if (!province || !metadescription || !year) {
-      alert('Please fill in all main fields');
+      toast.warning('Please fill in all main fields');
       return;
     }
 
     if (!actualSubjectId || !actualClassno) {
-      alert('Subject and class information is required');
+      toast.warning('Subject and class information is required');
       return;
     }
 
@@ -251,14 +251,13 @@ const handleImageDelete = async (index: number, type: 'question' | 'answer') => 
         await updatePaper(initialData.id, jsonData);
         toast.success('Paper updated successfully!', { duration: 5000, richColors: true });
       } else {
-        await axios.post('/api/imageupload/', {
-          file: questions[0].question_image,
-        });
+       console.log(jsonData)
         await createPaper(jsonData);
         toast.success('Paper created successfully!', { duration: 5000, richColors: true });
         resetForm();
       }
     } catch (error: any) {
+      console.log(error)
       const action = mode === 'edit' ? 'update' : 'create';
       toast.error(`Failed to ${action} paper`, { duration: 5000, richColors: true });
     }

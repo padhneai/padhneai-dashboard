@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { BookOpen, Calculator, Microscope, Globe, Plus, ClipboardCheck } from "lucide-react"
+import { BookOpen, Calculator, Microscope, Globe, Plus, ClipboardCheck, X } from "lucide-react"
 import useSWR from "swr"
 
 import AddSubjectForm from "../addsubject/Addsuject"
@@ -41,6 +41,7 @@ export default function Dashboard({
 
   const handleAddSuccess = () => {
     mutate()
+    subjectmutate()
     setShowAddSubject(false)
   }
 
@@ -103,20 +104,34 @@ export default function Dashboard({
       )}
 
       {/* Add Subject Modal */}
-      {showAddSubject && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
-          <div className="relative w-full max-w-lg p-6 bg-white shadow-2xl rounded-2xl animate-fadeIn">
-            <button
-              onClick={() => setShowAddSubject(false)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 transition"
-            >
-              ✕
-            </button>
-            <h2 className="text-xl font-semibold mb-4 text-gray-700">Add New Subject</h2>
-            <AddSubjectForm classId={classid} onSuccess={handleAddSuccess} />
-          </div>
-        </div>
-      )}
+  {showAddSubject && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div className="relative w-full max-w-lg p-6 bg-white rounded-2xl shadow-2xl animate-fadeIn">
+      {/* Close Button */}
+      <button
+        onClick={() => setShowAddSubject(false)}
+        className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition"
+      >
+        <X/>
+      </button>
+
+      {/* Header */}
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Add New Subject</h2>
+        <p className="text-gray-500 text-sm mt-1">
+          Quickly create and manage subjects for this class.
+        </p>
+      </div>
+
+      {/* Form */}
+      <AddSubjectForm
+        classId={classid}
+        onSuccess={handleAddSuccess}
+      />
+    </div>
+  </div>
+)}
+
     </div>
   )
 }

@@ -51,6 +51,10 @@ export default function SubjectPageContainer({
     []
   );
 
+ const { data: notedata, mutate, isLoading } = useSWR("/notes", () =>
+    getAllTOC()
+  )
+
   const fetchPapers = useCallback(async () => {
     setLoading(true);
     try {
@@ -91,7 +95,7 @@ export default function SubjectPageContainer({
     }
   };
 
-  const headerCount = activeTab === 'notes' ? 0 : papers.length;
+  const headerCount = activeTab === 'notes' ? notedata.length : papers.length;
 
   return (
     <div className="min-h-screen">

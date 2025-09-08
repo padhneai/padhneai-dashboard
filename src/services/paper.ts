@@ -3,26 +3,7 @@ import apiClient from "@/config/apiClient";
 
 // ====================== PAPERS ======================
 
-// Recursive function to handle nested objects, arrays, and files
-function appendFormData(formData: FormData, data: any, parentKey?: string) {
-  if (data instanceof File) {
-    formData.append(parentKey || "", data);
-  } else if (Array.isArray(data)) {
-    data.forEach((value, index) => {
-      const newKey = parentKey ? `${parentKey}[${index}]` : `${index}`;
-      appendFormData(formData, value, newKey);
-    });
-  } else if (data && typeof data === "object") {
-    Object.entries(data).forEach(([key, value]) => {
-      if (value === null || value === undefined) return; // skip null/undefined
-      const newKey = parentKey ? `${parentKey}[${key}]` : key;
-      appendFormData(formData, value, newKey);
-    });
-  } else if (data !== null && data !== undefined) {
-    // Convert numbers/booleans to string
-    formData.append(parentKey || "", String(data));
-  }
-}
+
 
 
 // Get all papers
@@ -51,34 +32,15 @@ export const createPaper = async (payload: any) => {
   console.log(payload)
   try {
     const { data } = await apiClient.post("/papers/", payload);
-console.log(data)
+// console.log(data)
     return data;
   } catch (error: any) {
-    // console.log(error.response)
+    console.log(error.response)
     throw new Error(error.message);
   }
 };
 
-// Updated createPaper using appendFormData
-// export const createPaper = async (payload: Record<string, any>) => {
 
-//   try {
-//     const formData = new FormData();
-//     appendFormData(formData, payload);
-//   console.log(formData);
-
-
-//     const { data } = await apiClient.post("/papers/", formData, {
-//       headers: { "Content-Type": "multipart/form-data" },
-//     });
-
-//     console.log(data);
-//     return data;
-//   } catch (error: any) {
-//     console.log(error.response.data)
-//     throw new Error(error.response?.data?.detail || error.message);
-//   }
-// };
 
 
 

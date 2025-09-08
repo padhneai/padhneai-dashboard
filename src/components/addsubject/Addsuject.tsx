@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { createSubject } from "@/services/subjects"
+import { Book, Loader2 } from "lucide-react"
 
 // ✅ Zod schema
 const subjectSchema = z.object({
@@ -61,36 +62,50 @@ export default function AddSubjectForm({ classId,onSuccess }: AddSubjectFormProp
   }
 
   return (
-    <div className="w-full max-w-md mx-auto p-8 bg-white shadow-lg rounded-2xl">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Add Subject</h2>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-          {/* Subject Name */}
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Subject Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Physics" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+   <div className="w-full p-6">
+  <Form {...form}>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+      {/* Subject Name */}
+      <FormField
+        control={form.control}
+        name="name"
+        render={({ field }) => (
+          <FormItem>
 
-        
+            <FormLabel className="text-gray-700 font-medium text-md mb-2">
+              <Book className="h-6 w-6 text-blue-500"  />
+              
+              Subject Name</FormLabel>
+            <FormControl>
+              <Input
+                placeholder="Physics"
+                className="rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-transform hover:scale-[1.02]"
-          >
-            {loading ? "Adding..." : "Add Subject"}
-          </Button>
-        </form>
-      </Form>
-    </div>
+      {/* Submit Button with Spinner */}
+      <Button
+        type="submit"
+        disabled={loading}
+        className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center"
+      >
+        {loading ? (
+          <>
+            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+            Adding...
+          </>
+        ) : (
+          "Add Subject"
+        )}
+      </Button>
+    </form>
+  </Form>
+</div>
+
   )
 }

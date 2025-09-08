@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { createTOC, partialUpdateTOC, updateTOC } from '@/services/notes';
+import { createTOC, partialUpdateTOC } from '@/services/notes';
 
 interface StudyNote {
   id?: number;
@@ -104,7 +104,6 @@ export default function StudyNotes({
         toast.error('Please fill chapter number, content name, and description');
         return;
       }
-
       try {
         await partialUpdateTOC(tocid, { ...note });
         toast.success('Note updated successfully!');
@@ -119,7 +118,6 @@ export default function StudyNotes({
           return;
         }
       }
-
       try {
         await createTOC(notes.map(note => ({ ...note, subject_id: Number(subjectId) })));
         toast.success('Notes created successfully!');
@@ -130,94 +128,88 @@ export default function StudyNotes({
   }, [formData, mode, subjectId, tocid]);
 
   return (
-    <div className="max-w-5xl mx-auto p-4 space-y-4">
-      {mode === 'edit' ? (
-        <SingleNoteForm note={formData as StudyNote} handleChange={handleChange} />
-      ) : (
-        (formData as StudyNote[]).map((note, index) => (
-          <div key={index} className="border rounded-xl bg-white shadow-sm overflow-hidden">
-            <div
-              className="flex justify-between items-center px-4 py-3 cursor-pointer hover:bg-gray-50"
-              onClick={() => toggleHidden(index)}
-            >
-              <div className="flex items-center gap-4">
-                <div className="font-bold text-lg">{index + 1}.</div>
-                <div>
-                  <div className="font-medium">{note.content_name_english || 'New Note'}</div>
-                  <div className="text-sm text-gray-500">
-                    {note.chapter_number || 'Add chapter number'}
-                  </div>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {(mode === 'edit' ? [formData as StudyNote] : formData as StudyNote[]).map((note, index) => (
+        <div
+          key={index}
+          className="border rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-200 bg-white"
+        >
+          {/* Accordion Header */}
+          <div
+            className="flex justify-between items-center px-6 py-4 cursor-pointer bg-gray-100 hover:bg-gray-200 transition-colors"
+            onClick={() => toggleHidden(index)}
+          >
+            <div className="flex items-center gap-4">
+              <div className="font-bold text-lg">{mode === 'add' ? index + 1 : 'Note'}</div>
+              <div>
+                <div className="font-medium text-gray-800">
+                  {note.content_name_english || 'New Note'}
+                </div>
+                <div className="text-sm text-gray-500">
+                  Chapter: {note.chapter_number || '-'}
                 </div>
               </div>
-              {showHidden[index] ? <ChevronUp /> : <ChevronDown />}
             </div>
+            {showHidden[index] ? <ChevronUp /> : <ChevronDown />}
+          </div>
 
-            {showHidden[index] && (
-              <div className="p-4 space-y-4">
-                <NoteForm
-                  note={note}
-                  handleChange={(field, value) => handleChange(index, field, value)}
-                />
-                <div className="flex justify-end">
-                  <Button variant="destructive" size="sm" onClick={() => removeNote(index)} className="flex items-center gap-2">
+          {/* Accordion Body */}
+          {showHidden[index] && (
+            <div className="p-6 space-y-4 bg-gray-50">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className='mb-4'>Chapter Number</Label>
+                  <Input type="number" value={note.chapter_number} onChange={e => handleChange(index, 'chapter_number', Number(e.target.value))} />
+                </div>
+                <div>
+                  <Label className='mb-4'>Content Name (English)</Label>
+                  <Input value={note.content_name_english} onChange={e => handleChange(index, 'content_name_english', e.target.value)} />
+                </div>
+                <div>
+                  <Label className='mb-4'>Content Name (Nepali)</Label>
+                  <Input value={note.content_name_nepali} onChange={e => handleChange(index, 'content_name_nepali', e.target.value)} />
+                </div>
+                <div className="md:col-span-2 space-y-2">
+                  <Label className='mb-4'>Description (English)</Label>
+                  <Textarea value={note.description_english} onChange={e => handleChange(index, 'description_english', e.target.value)} rows={4} />
+                  <Label className='mb-4'>Description (Nepali)</Label>
+                  <Textarea value={note.description_nepali} onChange={e => handleChange(index, 'description_nepali', e.target.value)} rows={4} />
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                {mode === 'add' && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={() => removeNote(index)}
+                  >
                     <Trash2 className="w-4 h-4" /> Remove
                   </Button>
-                </div>
+                )}
               </div>
-            )}
-          </div>
-        ))
-      )}
+            </div>
+          )}
+        </div>
+      ))}
 
       {mode === 'add' && (
-        <div className="flex justify-end gap-4">
-          <Button onClick={addNote} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+        <div className="flex justify-end gap-4 mt-4">
+          <Button
+            onClick={addNote}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+          >
             <Plus className="w-4 h-4" /> Add Note
           </Button>
         </div>
       )}
 
-      <div className="flex justify-end mt-4">
-        <Button onClick={handleSubmit}>{mode === 'edit' ? 'Update' : 'Save All'}</Button>
+      <div className="flex justify-end mt-6">
+        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl" onClick={handleSubmit}>
+          {mode === 'edit' ? 'Update Note' : 'Save All Notes'}
+        </Button>
       </div>
     </div>
   );
 }
-
-// Reusable Note Form using ShadCN Textarea
-const NoteForm = ({
-  note,
-  handleChange,
-}: {
-  note: StudyNote;
-  handleChange: (field: keyof StudyNote, value: string | number) => void;
-}) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div>
-      <Label>Chapter Number</Label>
-      <Input type="number" value={note.chapter_number} onChange={e => handleChange('chapter_number', Number(e.target.value))} />
-    </div>
-    <div>
-      <Label>Content Name (English)</Label>
-      <Input value={note.content_name_english} onChange={e => handleChange('content_name_english', e.target.value)} />
-    </div>
-    <div>
-      <Label>Content Name (Nepali)</Label>
-      <Input value={note.content_name_nepali} onChange={e => handleChange('content_name_nepali', e.target.value)} />
-    </div>
-    <div className="md:col-span-2">
-      <Label>Description (English)</Label>
-      <Textarea value={note.description_english} onChange={e => handleChange('description_english', e.target.value)} rows={4} />
-      <Label className="mt-2">Description (Nepali)</Label>
-      <Textarea value={note.description_nepali} onChange={e => handleChange('description_nepali', e.target.value)} rows={4} />
-    </div>
-  </div>
-);
-
-const SingleNoteForm = ({
-  note,
-  handleChange,
-}: {
-  note: StudyNote;
-  handleChange: (field: keyof StudyNote, value: string | number) => void;
-}) => <NoteForm note={note} handleChange={handleChange} />;

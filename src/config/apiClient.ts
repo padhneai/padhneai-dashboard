@@ -1,11 +1,11 @@
 import axios from "axios";
 
 // Create reusable Axios client
-const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend-production-f97b.up.railway.app/api",
+const  apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000/api",
   timeout: 10000,
 });
-
+  // || "https://backend-production-f97b.up.railway.app/api",
 // Track active requests for cancellation
 const activeRequests = new Map<string, AbortController>();
 

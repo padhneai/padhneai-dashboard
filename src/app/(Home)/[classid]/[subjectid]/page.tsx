@@ -13,6 +13,7 @@ const page =async ({params}:RouteParams) => {
   const gettoc = await getAllTOC()
   // console.log(gettoc)
     const data = await getAllNotes()
+    // console.log(data)
 
     
   return (
@@ -21,3 +22,4 @@ const page =async ({params}:RouteParams) => {
 }
 
 export default page
+
