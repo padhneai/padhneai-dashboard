@@ -49,11 +49,11 @@ export const updatePaper = async (id: number, payload: any) => {
   try {
     //@ts-ignore
 
-    const user: UserInfo = await getCurrentUserCached(true);
+    // const user: UserInfo = await getCurrentUserCached(true);
 
-    if (user.role !== "admin") {
-      throw new Error("Permission denied: Only admins can update papers.");
-    }
+    // if (user.role !== "admin") {
+    //   throw new Error("Permission denied: Only admins can update papers.");
+    // }
 
     const { data } = await apiClient.put(`/papers/${id}/`, payload);
     return data;
@@ -67,11 +67,11 @@ export const partialUpdatePaper = async (id: number, payload: any) => {
   try {
     //@ts-ignore
 
-    const user: UserInfo = await getCurrentUserCached(true);
+    // const user: UserInfo = await getCurrentUserCached(true);
 
-    if (user.role !== "admin") {
-      throw new Error("Permission denied: Only admins can update papers.");
-    }
+    // if (user.role !== "admin") {
+    //   throw new Error("Permission denied: Only admins can update papers.");
+    // }
 
     const { data } = await apiClient.patch(`/papers/${id}/`, payload);
     return data;
