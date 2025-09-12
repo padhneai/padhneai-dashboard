@@ -16,7 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { signIn } from "@/Firebase/firebaseaction/auth.action"
+import { getCurrentUserCached, signIn } from "@/Firebase/firebaseaction/auth.action"
 import { useRouter } from "next/navigation"
 import {  signInWithEmailAndPassword } from "firebase/auth"
 import { auth } from "@/Firebase/client"
@@ -67,7 +67,9 @@ export default function LoginForm() {
     if (res.redirectTo === "/token" && res.uid) {
       router.push(`/verify-token?user=${res.uid}`);
     } else {
-      router.push(res.redirectTo || "/"); // admin goes to dashboard
+      router.push(res.redirectTo || "/"); // admin goes to 
+       await getCurrentUserCached(true);
+      
     }
 
   } catch (err) {

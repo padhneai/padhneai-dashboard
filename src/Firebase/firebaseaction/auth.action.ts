@@ -266,10 +266,11 @@ export async function getEmailByUid(uid: string): Promise<string | null> {
 
 let cachedUser: UserInfo | null = null;
 
-export async function getCurrentUserCached() {
-  if (cachedUser) return cachedUser;
+export async function getCurrentUserCached(forceRefresh = false) {
+  if (cachedUser && !forceRefresh) return cachedUser;
 
   const user = await getCurrentsUser(); // your actual server call
   cachedUser = user;
   return user;
 }
+
