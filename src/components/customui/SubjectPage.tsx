@@ -85,15 +85,23 @@ export default function SubjectPageContainer({
     }
   }, [activeTab, selectedProvince, fetchPapers]);
 
-  const onDeletePaper = async (id: number) => {
-    try {
-      await deletePaper(id);
-      setPapers((prev) => prev.filter((p) => p.id !== id));
-      toast.success('Paper deleted');
-    } catch {
-      toast.error('Failed to delete paper');
-    }
-  };
+ const onDeletePaper = async (id: number) => {
+  try {
+    await deletePaper(id);
+
+    setPapers((prev) => prev.filter((p) => p.id !== id));
+
+    toast.success("Paper deleted successfully");
+  } catch (error: unknown) {
+    console.error("Delete paper failed:", error);
+
+    const message =
+      error instanceof Error ? error.message : "Failed to delete paper";
+
+    toast.error(message);
+  }
+};
+
 
   const headerCount = activeTab === 'notes' ? notedata.length : papers.length;
 

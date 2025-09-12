@@ -1,5 +1,6 @@
 "use server";
 import apiClient from "@/config/apiClient";
+import { getCurrentUserCached } from "@/Firebase/firebaseaction/auth.action";
 
 // ====================== PAPERS ======================
 
@@ -43,10 +44,17 @@ export const createPaper = async (payload: any) => {
 
 
 
-
 // Update paper
 export const updatePaper = async (id: number, payload: any) => {
   try {
+    //@ts-ignore
+
+    const user: UserInfo = await getCurrentUserCached(true);
+
+    if (user.role !== "admin") {
+      throw new Error("Permission denied: Only admins can update papers.");
+    }
+
     const { data } = await apiClient.put(`/papers/${id}/`, payload);
     return data;
   } catch (error: any) {
@@ -57,6 +65,14 @@ export const updatePaper = async (id: number, payload: any) => {
 // Partial update paper
 export const partialUpdatePaper = async (id: number, payload: any) => {
   try {
+    //@ts-ignore
+
+    const user: UserInfo = await getCurrentUserCached(true);
+
+    if (user.role !== "admin") {
+      throw new Error("Permission denied: Only admins can update papers.");
+    }
+
     const { data } = await apiClient.patch(`/papers/${id}/`, payload);
     return data;
   } catch (error: any) {
@@ -67,12 +83,20 @@ export const partialUpdatePaper = async (id: number, payload: any) => {
 // Delete paper
 export const deletePaper = async (id: number) => {
   try {
+    //@ts-ignore
+    const user: UserInfo = await getCurrentUserCached(true);
+
+    if (user.role !== "admin") {
+      throw new Error("Permission denied: Only admins can delete papers.");
+    }
+
     const { data } = await apiClient.delete(`/papers/${id}/`);
     return data;
   } catch (error: any) {
     throw new Error(error.message);
   }
 };
+
 
 // Get papers with filter
 export const getFilteredPapers = async (params?: Record<string, any>) => {
