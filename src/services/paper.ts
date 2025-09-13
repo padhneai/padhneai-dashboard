@@ -30,13 +30,13 @@ export const getPaperById = async (id: number) => {
 
 // Create new paper
 export const createPaper = async (payload: any) => {
-  console.log(payload)
+  // console.log(payload)
   try {
     const { data } = await apiClient.post("/papers/", payload);
 // console.log(data)
     return data;
   } catch (error: any) {
-    console.log(error.response)
+    // console.log(error.response)
     throw new Error(error.message);
   }
 };

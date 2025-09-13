@@ -15,7 +15,7 @@ const Rootlayout =async ({children}:{children:ReactNode}) => {
   if(!isUserAuthenticated)  redirect("/sign-in")
   return (
     <div className="root-layout">
-       <Toaster richColors position="top-center" />
+       
              {/* @ts-ignore */}
          <Dashboardheader data={data } />
          <Breadcrumbs/>
