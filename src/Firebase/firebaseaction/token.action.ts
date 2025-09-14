@@ -94,7 +94,7 @@ export async function getAllTokens(): Promise<Token[]> {
   const snapshot = await db.collection('tokens').orderBy('createdAt', 'desc').get();
   return snapshot.docs.map((doc) => {
     const data = doc.data() as Token;
-    console.log(data)
+    // console.log(data)
     return {
       ...data,
        createdAt:

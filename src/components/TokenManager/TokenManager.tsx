@@ -1,46 +1,73 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import useSWR from "swr";
 
-import { generateToken, getAllTokens, deleteToken } from "@/Firebase/firebaseaction/token.action";
+import {
+  generateToken,
+  getAllTokens,
+  deleteToken,
+} from "@/Firebase/firebaseaction/token.action";
+import { getEmailByUid } from "@/Firebase/firebaseaction/auth.action";
 import AlertDialogbox from "../customui/AlertDiologbox";
 
-
-const TokenManager = () => {
+const TokenManager = ({ tokensWithEmails }: any) => {
   const { data: alltoken, mutate, isLoading } = useSWR("/tokens", getAllTokens);
 
-  const [tokens, setTokens] = useState<Token[]>([]);
+  const [tokens, setTokens] = useState<Token[]>(tokensWithEmails);
   const [loading, setLoading] = useState(false);
   const [generatedToken, setGeneratedToken] = useState<string>("");
 
+  // Helper to enrich tokens with emails
+  const tokenwithEmail = useCallback(async () => {
+    if (!alltoken) return [];
 
+    const enrichedTokens = await Promise.all(
+      alltoken.map(async (token: any) => {
+        const email = token.usedBy ? await getEmailByUid(token.usedBy) : null;
+        return {
+          ...token,
+          usedemail: email,
+        };
+      })
+    );
 
-// Hide the token after 10 seconds
-useEffect(() => {
-  if (!generatedToken) return;
-
-  const timer = setTimeout(() => {
-    setGeneratedToken("");
-  }, 10000); // 10 seconds
-
-  return () => clearTimeout(timer); // cleanup if component unmounts
-}, [generatedToken]);
-
-  // Update tokens when SWR data changes
-  useEffect(() => {
-    if (alltoken) setTokens(alltoken);
+    return enrichedTokens;
   }, [alltoken]);
+
+  // Hide the token after 10 seconds
+  useEffect(() => {
+    if (!generatedToken) return;
+
+    const timer = setTimeout(() => {
+      setGeneratedToken("");
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [generatedToken]);
+
+  // Update tokens whenever SWR data changes
+  useEffect(() => {
+    const fetchAndSetTokens = async () => {
+      const enriched = await tokenwithEmail();
+      setTokens(enriched);
+    };
+
+    if (alltoken) {
+      fetchAndSetTokens();
+    }
+  }, [alltoken, tokenwithEmail]);
 
   // Generate new token
   const handleGenerateToken = async () => {
     setLoading(true);
     try {
-      const tokenData = await generateToken(4); // your server method
-      setGeneratedToken(tokenData); // handle server response
-      
-      mutate(); // revalidate SWR
+      const tokenValue = await generateToken(4);
+      setGeneratedToken(tokenValue);
+
+      // revalidate SWR so new token shows in list
+      mutate();
     } catch (err) {
       console.error(err);
     } finally {
@@ -52,8 +79,8 @@ useEffect(() => {
   const handleDeleteToken = async (tokenValue: string) => {
     try {
       await deleteToken(tokenValue);
-      setTokens(prev => prev.filter(t => t.value !== tokenValue));
-      mutate(); // revalidate SWR
+      setTokens((prev) => prev.filter((t) => t.value !== tokenValue));
+      mutate(); // revalidate after deletion
     } catch (err) {
       console.error("Failed to delete token:", err);
     }
@@ -91,24 +118,42 @@ useEffect(() => {
           <table className="min-w-full divide-y divide-gray-200 border">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Token</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Created At</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Used By</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Status</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Actions</th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  Token
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  Created At
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  Used By
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  Status
+                </th>
+                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {tokens.map((t) => (
                 <tr key={t.value}>
                   <td className="px-4 py-2 font-mono text-gray-800">{t.value}</td>
-                  <td className="px-4 py-2 text-gray-600">{new Date(t.createdAt).toLocaleString()}</td>
-                  <td className="px-4 py-2 text-gray-600">{t.usedBy || "-"}</td>
+                  <td className="px-4 py-2 text-gray-600">
+                    {new Date(t.createdAt).toLocaleString()}
+                  </td>
+                  <td className="px-4 py-2 text-gray-600">
+                    {t.usedemail || "-"}
+                  </td>
                   <td className="px-4 py-2">
                     {t.usedBy ? (
-                      <span className="text-sm text-red-600 font-semibold">Used</span>
+                      <span className="text-sm text-red-600 font-semibold">
+                        Used
+                      </span>
                     ) : (
-                      <span className="text-sm text-green-600 font-semibold">Unused</span>
+                      <span className="text-sm text-green-600 font-semibold">
+                        Unused
+                      </span>
                     )}
                   </td>
                   <td className="px-4 py-2">
