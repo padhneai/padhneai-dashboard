@@ -102,6 +102,7 @@ export const deletePaper = async (id: number) => {
 export const getFilteredPapers = async (params?: Record<string, any>) => {
   try {
     const { data } = await apiClient.get("/papers/filter/", { params });
+    // console.log(data)
     return data;
   } catch (error: any) {
     // throw new Error(error.message);

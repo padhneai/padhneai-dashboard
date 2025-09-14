@@ -81,9 +81,9 @@ export default function Dashboard({
       </div>
 
       {/* Subjects Grid */}
-      {classdata && classdata.length > 0 ? (
+      {classdata && classdata.results.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {classdata.map((subject:any) => {
+          {classdata.results.map((subject:any) => {
             // Find the analytics object for this subject
             const analyticsForSubject = subjectanalytics?.find(a => a.subject_id === subject.id)
             return (

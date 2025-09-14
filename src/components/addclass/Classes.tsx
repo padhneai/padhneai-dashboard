@@ -61,7 +61,7 @@ const Classes = () => {
         {isLoading ? (
           <p className="text-gray-500 text-center col-span-full">Loading classes...</p>
         ) : (
-          classdatas?.map((level: any) => (
+          classdatas && classdatas.results.length > 0 &&  classdatas?.results.map((level: any) => (
             <div key={level.id} className="relative">
               <ClassCard title={level.name} href={`${level.name}_${level.id}`} />
               <div className="absolute top-2 right-2 flex gap-1">

@@ -55,6 +55,10 @@ interface ClassLevel{
   name:string,
 
 }
+
+
+
+
 interface Subjectlevel{
   class_level:ClassLevel,
   id:string,
@@ -116,6 +120,57 @@ interface ClassesProps {
 }
 
 
+// Main API response
+interface ClassApiResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  page_size: number;
+  total_pages: number;
+  current_page: number;
+  results: ClassItem[];
+}
+// Main API response
+interface SubjectApiResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  page_size: number;
+  total_pages: number;
+  current_page: number;
+  results: Subjectlevel[];
+}
+// Main API response
+interface PaperApiResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  page_size: number;
+  total_pages: number;
+  current_page: number;
+  results: Paper[];
+}
+// Main API response
+interface NoteApiResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  page_size: number;
+  total_pages: number;
+  current_page: number;
+  results: NoteToc[];
+}
+// Main API response
+interface NoteContentApiResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  page_size: number;
+  total_pages: number;
+  current_page: number;
+  results: NoteContent[];
+}
+
 
 interface SubjectAnalytics {
   subject_id: number | string
@@ -136,11 +191,28 @@ interface DashboardAnalytics {
 
 
 interface NoteToc{
+    id?:Number,
+    subject?:Subjectlevel,
       chapter_number:string,
       content_name_english: string,
-      content_name_nepali: string,
+      content_name_nepali?: string,
       description_english: string,
-      description_nepali:string,
+      description_nepali?:string,
+}
+
+
+interface NoteContent {
+  id: number;
+  title: string;
+  description: string;
+  slug:string;
+  image:string;
+  long_description_english:string;
+  long_description_nepali:string;
+questions_english:string;
+question_nepali:string;
+  toc_entry: NoteToc;
+  
 }
 
 

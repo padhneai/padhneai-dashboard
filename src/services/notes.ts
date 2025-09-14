@@ -4,12 +4,13 @@ import apiClient from "@/config/apiClient";
 // ====================== NOTES CONTENTS ======================
 
 // Get all notes contents
-export const getAllNotes = async () => {
+export const getAllNotes = async ():Promise<NoteContentApiResponse | null > => {
   try {
     const { data } = await apiClient.get("/notes/contents/");
     return data;
   } catch (error: any) {
-    throw new Error(error.message);
+    // throw new Error(error.message);
+    return null;
   }
 };
 
@@ -17,7 +18,7 @@ export const getAllNotes = async () => {
 export const getNoteById = async (id: number) => {
   try {
     const { data } = await apiClient.get(`/notes/contents/${id}/`);
-    console.log(data)
+    // console.log(data)
     return data;
   } catch (error: any) {
     console.log(error.response)
@@ -69,7 +70,7 @@ export const updateNote = async (id: number, payload: any) => {
 
 // Partial update note content
 export const partialUpdateNote = async (id: number, payload: any) => {
-   console.log(id,payload)
+  //  console.log(id,payload)
   try {
     const { data } = await apiClient.patch(`/notes/contents/${id}/`, payload);
     return data;
@@ -93,12 +94,13 @@ export const deleteNote = async (id: number) => {
 // ====================== TOC (Table of Contents) ======================
 
 // Get all TOC
-export const getAllTOC = async () => {
+export const getAllTOC = async ():Promise<NoteApiResponse | null> => {
   try {
     const { data } = await apiClient.get("/notes/toc/");
     return data;
   } catch (error: any) {
-    throw new Error(error.message);
+    // throw new Error(error.message);
+    return null;
   }
 };
 
@@ -108,7 +110,8 @@ export const getTOCById = async (id: number) => {
     const { data } = await apiClient.get(`/notes/toc/${id}/`);
     return data;
   } catch (error: any) {
-    throw new Error(error.message);
+    // throw new Error(error.message);
+    return null;
   }
 };
 

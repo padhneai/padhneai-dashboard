@@ -3,7 +3,7 @@ import apiClient from "@/config/apiClient";
 import { revalidatePath } from "next/cache";
 
 // Get all classes
-export const getAllClasses = async () => {
+export const getAllClasses = async ():Promise<ClassApiResponse | null> => {
   try {
     const { data } = await apiClient.get("/classes/");
     return data;
@@ -56,7 +56,7 @@ export const updateClass = async (id:number,payload: any) => {
 
 
 export const deleteClass = async (id:number) => {
-  console.log(id)
+  // console.log(id)
   try {
     const { data } = await apiClient.delete(`/classes/${id}/`);
 

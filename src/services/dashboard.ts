@@ -2,7 +2,7 @@
 import apiClient from "@/config/apiClient";
 
 // Get all dashboard analytics
-export const getDashboadAnalytics = async () => {
+export const getDashboadAnalytics = async ():Promise<DashboardAnalytics | null> => {
   try {
     const { data } = await apiClient.get("/dashboard/stats/");
     return data;
@@ -13,7 +13,7 @@ export const getDashboadAnalytics = async () => {
   }
 };
 // Get Each subject Analytics
-export const getEachSubjectAnalytics = async () => {
+export const getEachSubjectAnalytics = async ():Promise<SubjectAnalytics[] | null> => {
   try {
     const { data } = await apiClient.get("/dashboard/subjects/analytics");
     return data;

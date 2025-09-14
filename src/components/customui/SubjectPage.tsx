@@ -103,7 +103,11 @@ export default function SubjectPageContainer({
 };
 
 
-  const headerCount = activeTab === 'notes' ? notedata.length : papers.length;
+  const headerCount =
+  activeTab === "notes"
+    ? notedata?.results?.length ?? 0
+    : papers?.length ?? 0;
+
 
   return (
     <div className="min-h-screen">

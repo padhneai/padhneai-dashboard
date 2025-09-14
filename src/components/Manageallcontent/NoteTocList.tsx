@@ -11,15 +11,6 @@ import NoteItem from "./Noteitems";
 import AlertDialogbox from "../customui/AlertDiologbox";
 
 
-interface NoteContent {
-  id: number;
-  title: string;
-  description: string;
-  toc_entry: {
-    id: number;
-  };
-  // add other fields if needed
-}
 
 export default function NotesTOCList({
   subjectId,
@@ -44,14 +35,14 @@ export default function NotesTOCList({
   } = useSWR("/getAllnote", getAllNotes);
 
   // Filter TOCs by current subject
-  const tocList = Array.isArray(tocData)
-    ? tocData.filter((t: any) => String(t.subject.id) === String(subjectId))
+  const tocList = Array.isArray(tocData?.results)
+    ? tocData.results.filter((t: any) => String(t.subject.id) === String(subjectId))
     : [];
 
   // Filter notes by TOC
   const getNotesByTOC = (tocId: number) => {
-    if (!Array.isArray(notesData)) return [];
-    return notesData.filter((note: NoteContent) => note.toc_entry.id === tocId);
+    if (!Array.isArray(notesData?.results)) return [];
+    return notesData.results.filter((note: NoteContent) => note.toc_entry.id === tocId);
   };
 
   const onDeleteTOC = async (id: number) => {

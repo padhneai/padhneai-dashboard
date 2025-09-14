@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create reusable Axios client
 const  apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend-production-f97b.up.railway.app/api",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend-production-8377.up.railway.app/api",
   timeout: 10000,
 });
   // || "https://backend-production-f97b.up.railway.app/api",

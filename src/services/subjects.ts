@@ -2,7 +2,7 @@
 import apiClient from "@/config/apiClient";
 
 // Get all subjects
-export const getAllSubjects = async () => {
+export const getAllSubjects = async ():Promise<SubjectApiResponse | null> => {
   try {
     const { data } = await apiClient.get("/subjects/");
     return data;
