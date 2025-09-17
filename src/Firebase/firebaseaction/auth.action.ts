@@ -264,13 +264,17 @@ export async function getEmailByUid(uid: string): Promise<string | null> {
 }
 
 
-// let cachedUser: UserInfo | null = null;
 
-export async function getCurrentUserCached() {
-  // if (cachedUser && !forceRefresh) return cachedUser;
 
-  const user = await getCurrentsUser(); // your actual server call
-  // cachedUser = user;
+export async function getCurrentUserCached():Promise<UserInfo | null> {
+  
+
+try {
+    const user = await getCurrentsUser(); // your actual server call
+ 
   return user;
+} catch (error) {
+  return null;
+}
 }
 

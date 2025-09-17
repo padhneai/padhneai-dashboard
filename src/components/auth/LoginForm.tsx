@@ -68,7 +68,6 @@ export default function LoginForm() {
       router.push(`/verify-token?user=${res.uid}`);
     } else {
       router.push(res.redirectTo || "/"); // admin goes to 
-       await getCurrentUserCached(true);
       
     }
 
