@@ -8,7 +8,7 @@ import { getCurrentUserCached } from "@/Firebase/firebaseaction/auth.action";
 
 
 // Get all papers
-export const getAllPapers = async () => {
+export const getAllPapers = async ():Promise<PaperApiResponse | null> => {
   try {
     const { data } = await apiClient.get("/papers/");
     return data;
