@@ -45,11 +45,17 @@ export default function Texteditor({
             "paste",
             "preview"
           ],
+          // toolbar:
+          //   "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | " +
+          //   "forecolor backcolor | alignleft aligncenter alignright alignjustify | " +
+          //   "bullist numlist outdent indent | blockquote | link image media table | " +
+          //   "codesample emoticons charmap | removeformat preview",
+
           toolbar:
-            "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | " +
-            "forecolor backcolor | alignleft aligncenter alignright alignjustify | " +
-            "bullist numlist outdent indent | blockquote | link image media table | " +
-            "codesample emoticons charmap | removeformat preview",
+  "undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | " +
+  "forecolor backcolor | alignleft aligncenter alignright alignjustify | " +
+  "bullist numlist outdent indent | blockquote | link image media table | " +
+  "imageoptions | codesample emoticons charmap | removeformat preview",
           toolbar_mode: "sliding", // makes it mobile friendly
           content_style:
             "body { font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.6 }",
