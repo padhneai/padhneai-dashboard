@@ -99,7 +99,7 @@ export const deletePaper = async (id: number) => {
 
 
 // Get papers with filter
-export const getFilteredPapers = async (params?: Record<string, any>) => {
+export const getFilteredPapers = async (params?: Record<string, any>):Promise<PaperApiResponse | null> => {
   try {
     const { data } = await apiClient.get("/papers/filter/", { params });
     // console.log(data)

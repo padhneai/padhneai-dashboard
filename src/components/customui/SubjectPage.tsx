@@ -36,7 +36,7 @@ export default function SubjectPageContainer({
 }: SubjectPageProps) {
   const [activeTab, setActiveTab] = useState<TabId>('model-sets');
   const [selectedProvince, setSelectedProvince] = useState<string>('all');
-  const [papers, setPapers] = useState<any[]>([]);
+  const [papers, setPapers] = useState<PaperApiResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   
@@ -67,7 +67,8 @@ export default function SubjectPageContainer({
       if (selectedProvince !== 'all') params.province = selectedProvince;
 
       const res = await getFilteredPapers(params);
-      setPapers(Array.isArray(res) ? res : []);
+      console.log(res)
+      setPapers(res);
     } catch (err) {
       setPapers([]);
       // toast.error('Failed to fetch papers');
@@ -80,7 +81,7 @@ export default function SubjectPageContainer({
     if (activeTab !== 'notes') {
       fetchPapers();
     } else {
-      setPapers([]);
+      setPapers(null);
       setLoading(false);
     }
   }, [activeTab, selectedProvince, fetchPapers]);
@@ -89,7 +90,21 @@ export default function SubjectPageContainer({
   try {
     await deletePaper(id);
 
-    setPapers((prev) => prev.filter((p) => p.id !== id));
+    // setPapers((prev) => (prev?.results.filter((p) => p.id !== id)));
+    setPapers((prev) => {
+  if (!prev) return prev; // or return null if you prefer
+
+  const filteredResults = prev.results.filter((p) => p.id !== id);
+
+  // Optional: if no results left, return null
+  // if (filteredResults.length === 0) return null;
+
+  return {
+    ...prev,
+    results: filteredResults,
+    count: filteredResults.length, // 👈 Update count if needed
+  };
+});
 
     toast.success("Paper deleted successfully");
   } catch (error: unknown) {
@@ -106,7 +121,7 @@ export default function SubjectPageContainer({
   const headerCount =
   activeTab === "notes"
     ? notedata?.results?.length ?? 0
-    : papers?.length ?? 0;
+    : papers?.results.length ?? 0;
 
 
   return (
@@ -164,9 +179,9 @@ export default function SubjectPageContainer({
                       </div>
                     ))}
                   </div>
-                ) : papers.length > 0 ? (
+                ) : papers &&  papers?.results.length > 0 ? (
                   <PapersGrid
-                    papers={papers}
+                    papers={papers?.results}
                     routes={(paper) => ({
                       view: `/${classname}_${classid}/${subjectname}_${subjectId}/view-questions?id=${paper.id}`,
                       edit: `/${classname}_${classid}/${subjectname}_${subjectId}/edit-questions?id=${paper.id}`,
