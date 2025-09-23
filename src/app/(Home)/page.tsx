@@ -1,12 +1,16 @@
 import Classes from '@/components/addclass/Classes'
+import FullpageLoading from '@/components/Loading/FullpageLoading'
 import { getAllClasses } from '@/services/classes'
-import React from 'react'
+import React, { Suspense } from 'react'
 
 const page = async () => {
   const data = await getAllClasses()
-  // console.log(data)
+  
   return (
-  <Classes />
+    <Suspense fallback={<FullpageLoading />}>
+      {/* @ts-ignore */}
+      <Classes initialClasses={data} />
+  </Suspense>
   )
 }
 

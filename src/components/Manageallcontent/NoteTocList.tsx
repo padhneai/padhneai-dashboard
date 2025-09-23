@@ -9,6 +9,8 @@ import { getAllTOC, deleteTOC, getAllNotes } from "@/services/notes";
 import { toast } from "sonner";
 import NoteItem from "./Noteitems";
 import AlertDialogbox from "../customui/AlertDiologbox";
+import { fa } from "zod/v4/locales";
+import DataDisplayLoading from "../Loading/DataDisplayLoading";
 
 
 
@@ -17,11 +19,13 @@ export default function NotesTOCList({
   classname,
   classid,
   subjectname,
+  initialdata,
 }: {
   subjectId: string;
   classname: string;
   classid: string;
   subjectname: string;
+  initialdata?: any;
 }) {
   const {
     data: tocData,
@@ -32,7 +36,7 @@ export default function NotesTOCList({
     data: notesData,
     isLoading: notesLoading,
     mutate: mutateNotes,
-  } = useSWR("/getAllnote", getAllNotes);
+  } = useSWR("/getAllnote", getAllNotes,{fallbackData: initialdata, revalidateOnFocus: false});
 
   // Filter TOCs by current subject
   const tocList = Array.isArray(tocData?.results)
@@ -62,21 +66,7 @@ export default function NotesTOCList({
       </div>
 
       {tocLoading ? (
-        <div className="grid gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div
-              key={i}
-              className="p-4 border rounded-lg animate-pulse bg-white shadow-sm"
-            >
-              <div className="h-4 bg-gray-300 rounded w-1/3 mb-4"></div>
-              <div className="flex gap-2">
-                <div className="h-3 w-10 bg-gray-300 rounded"></div>
-                <div className="h-3 w-12 bg-gray-300 rounded"></div>
-                <div className="h-3 w-16 bg-gray-300 rounded"></div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <DataDisplayLoading count={4} />
       ) : tocList.length ? (
         <div className="space-y-4">
           {tocList.map((toc: any) => (

@@ -10,7 +10,7 @@ import { getCurrentUserCached } from "@/Firebase/firebaseaction/auth.action";
 // Get all papers
 export const getAllPapers = async ():Promise<PaperApiResponse | null> => {
   try {
-    const { data } = await apiClient.get("/papers/");
+    const { data } = await apiClient.get("/papers/?page_size=50");
     return data;
   } catch (error: any) {
     // throw new Error(error.message);

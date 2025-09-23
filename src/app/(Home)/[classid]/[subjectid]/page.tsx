@@ -21,7 +21,7 @@ const page =async ({params}:RouteParams) => {
   return (
 
      <Suspense fallback={<FullpageLoading />}>
-    <SubjectPage subjectname = {c} subjectId={d} classname={classname} classid={b} />
+    <SubjectPage subjectname = {c} subjectId={d} classname={classname} classid={b} initialdata={{toc: gettoc, notes: data}} />
           
         </Suspense>
   )

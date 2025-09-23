@@ -11,53 +11,58 @@ import {
 } from "@/Firebase/firebaseaction/token.action";
 import { getEmailByUid } from "@/Firebase/firebaseaction/auth.action";
 import AlertDialogbox from "../customui/AlertDiologbox";
+import DataDisplayLoading from "../Loading/DataDisplayLoading";
 
-const TokenManager = ({ tokensWithEmails }: any) => {
-  const { data: alltoken, mutate, isLoading } = useSWR("/tokens", getAllTokens);
+interface Token {
+  value: string;
+  createdAt: string;
+  usedBy?: string;
+  usedemail?: string | null;
+}
 
-  const [tokens, setTokens] = useState<Token[]>(tokensWithEmails);
+const TokenManager = ({ tokensWithEmails }: { tokensWithEmails?: Token[] }) => {
+  // SWR fetch tokens
+  const { data: allTokens, mutate, error } = useSWR("/tokens", getAllTokens);
+
+  // Local state
+  const [tokens, setTokens] = useState<Token[]>(tokensWithEmails || []);
+  const [tokensLoading, setTokensLoading] = useState(!tokensWithEmails?.length);
   const [loading, setLoading] = useState(false);
   const [generatedToken, setGeneratedToken] = useState<string>("");
 
-  // Helper to enrich tokens with emails
-  const tokenwithEmail = useCallback(async () => {
-    if (!alltoken) return [];
+  // Enrich tokens with email
+  const tokenWithEmail = useCallback(async () => {
+    if (!allTokens) return [];
 
-    const enrichedTokens = await Promise.all(
-      alltoken.map(async (token: any) => {
+    const enriched = await Promise.all(
+      allTokens.map(async (token: any) => {
         const email = token.usedBy ? await getEmailByUid(token.usedBy) : null;
-        return {
-          ...token,
-          usedemail: email,
-        };
+        return { ...token, usedemail: email };
       })
     );
+    return enriched;
+  }, [allTokens]);
 
-    return enrichedTokens;
-  }, [alltoken]);
-
-  // Hide the token after 10 seconds
+  // Hide the generated token after 10 seconds
   useEffect(() => {
     if (!generatedToken) return;
-
-    const timer = setTimeout(() => {
-      setGeneratedToken("");
-    }, 10000);
-
+    const timer = setTimeout(() => setGeneratedToken(""), 10000);
     return () => clearTimeout(timer);
   }, [generatedToken]);
 
   // Update tokens whenever SWR data changes
   useEffect(() => {
     const fetchAndSetTokens = async () => {
-      const enriched = await tokenwithEmail();
+      setTokensLoading(true);
+      const enriched = await tokenWithEmail();
       setTokens(enriched);
+      setTokensLoading(false);
     };
 
-    if (alltoken) {
+    if (allTokens) {
       fetchAndSetTokens();
     }
-  }, [alltoken, tokenwithEmail]);
+  }, [allTokens, tokenWithEmail]);
 
   // Generate new token
   const handleGenerateToken = async () => {
@@ -65,9 +70,7 @@ const TokenManager = ({ tokensWithEmails }: any) => {
     try {
       const tokenValue = await generateToken(4);
       setGeneratedToken(tokenValue);
-
-      // revalidate SWR so new token shows in list
-      mutate();
+      mutate(); // revalidate SWR
     } catch (err) {
       console.error(err);
     } finally {
@@ -80,11 +83,20 @@ const TokenManager = ({ tokensWithEmails }: any) => {
     try {
       await deleteToken(tokenValue);
       setTokens((prev) => prev.filter((t) => t.value !== tokenValue));
-      mutate(); // revalidate after deletion
+      mutate(); // revalidate SWR
     } catch (err) {
       console.error("Failed to delete token:", err);
     }
   };
+
+  // === RENDER LOGIC ===
+  if (tokensLoading) {
+    return (
+      <div className="p-6 bg-white rounded-xl shadow-md max-w-4xl mx-auto mt-6">
+        <DataDisplayLoading count={5} />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-md max-w-4xl mx-auto mt-6">
@@ -109,11 +121,9 @@ const TokenManager = ({ tokensWithEmails }: any) => {
 
       <h3 className="text-lg font-medium mb-2">Token History</h3>
 
-      {(!tokens || tokens.length === 0) && (
+      {tokens.length === 0 ? (
         <p className="text-gray-500">No tokens available.</p>
-      )}
-
-      {tokens && tokens.length > 0 && (
+      ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 border">
             <thead className="bg-gray-50">
@@ -142,18 +152,12 @@ const TokenManager = ({ tokensWithEmails }: any) => {
                   <td className="px-4 py-2 text-gray-600">
                     {new Date(t.createdAt).toLocaleString()}
                   </td>
-                  <td className="px-4 py-2 text-gray-600">
-                    {t.usedemail || "-"}
-                  </td>
+                  <td className="px-4 py-2 text-gray-600">{t.usedemail || "-"}</td>
                   <td className="px-4 py-2">
                     {t.usedBy ? (
-                      <span className="text-sm text-red-600 font-semibold">
-                        Used
-                      </span>
+                      <span className="text-sm text-red-600 font-semibold">Used</span>
                     ) : (
-                      <span className="text-sm text-green-600 font-semibold">
-                        Unused
-                      </span>
+                      <span className="text-sm text-green-600 font-semibold">Unused</span>
                     )}
                   </td>
                   <td className="px-4 py-2">

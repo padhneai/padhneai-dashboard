@@ -1,15 +1,15 @@
+import FullpageLoading from '@/components/Loading/FullpageLoading';
 import TokenManager from '@/components/TokenManager/TokenManager'
-import { getEmailByUid } from '@/Firebase/firebaseaction/auth.action';
 import { getAllTokens } from '@/Firebase/firebaseaction/token.action';
-import React from 'react'
+import React, { Suspense } from 'react'
 
-const page = async() => {
-      const allTokens = await getAllTokens();
-
-
+const page = () => {
+     
 
   return (
-    <TokenManager />
+    <Suspense fallback={<FullpageLoading />}>
+      <TokenManager />
+    </Suspense>
   )
 }
 

@@ -1,8 +1,9 @@
 
 import QuestionForm from '@/components/addcontentforms/QuestionForm';
+import FullpageLoading from '@/components/Loading/FullpageLoading';
 import { log } from 'node:console';
 
-import React from 'react'
+import React, { Suspense } from 'react'
 
 const page = async({params,searchParams}:RouteParams) => {
   const {classid,subjectid} = await params;
@@ -18,7 +19,9 @@ const classname  = decodeURIComponent(a)
  
   return (
   // <AddContentPage subjectId={subjectid} contentType={type} />
-  <QuestionForm  subjectname={c} subjectId={d} contentType={type} classname={classname} classid={b}/>
+  <Suspense fallback={<FullpageLoading />}>
+    <QuestionForm  subjectname={c} subjectId={d} contentType={type} classname={classname} classid={b}/>
+  </Suspense>
 
   )
 }

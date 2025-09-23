@@ -3,19 +3,47 @@
 import useSWR from "swr";
 import { ClassCard } from "@/components/customui/Class_card";
 import { getAllClasses, deleteClass } from "@/services/classes";
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { toast } from "sonner";
 import AlertDialogbox from "@/components/customui/AlertDiologbox";
-import AddOrUpdateClass from "./Addclass";
+import DataDisplayLoading from "../Loading/DataDisplayLoading";
 
-const Classes = () => {
+// Lazy load AddOrUpdateClass for better performance
+const AddOrUpdateClass = React.lazy(() => import("./Addclass"));
+
+
+
+interface ClassesProps {
+  initialClasses?: ClassApiResponse;
+}
+
+const Classes = ({ initialClasses }: ClassesProps) => {
   const [showAddClass, setShowAddClass] = useState(false);
   const [showUpdateClass, setShowUpdateClass] = useState(false);
-  const [currentClass, setCurrentClass] = useState<{ id: number; name: string } | null>(null);
+  const [currentClass, setCurrentClass] = useState<ClassItem | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { data: classdatas, mutate, isLoading } = useSWR("/classes", getAllClasses);
+  const fallbackClasses = {
+    count: initialClasses?.count || 0,
+    next: initialClasses?.next || null,
+    previous: initialClasses?.previous || null,
+    page_size: initialClasses?.page_size || 0,
+    total_pages: initialClasses?.total_pages || 0,
+    current_page: initialClasses?.current_page || 0,
+    results: initialClasses?.results || [],
+  };
+
+
+
+  // SWR with fallbackData for SSR/SSG
+  const { data: classdatas, mutate, isLoading } = useSWR(
+    "/classes",
+    getAllClasses,
+    { fallbackData: fallbackClasses }
+  );
+
+  const classes = classdatas?.results || [];
 
   const handleAddSuccess = () => {
     mutate(); // Refresh class list after adding
@@ -59,9 +87,11 @@ const Classes = () => {
       {/* Class Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {isLoading ? (
-          <p className="text-gray-500 text-center col-span-full">Loading classes...</p>
+          <DataDisplayLoading count={4} />
+        ) : classes.length === 0 ? (
+          <p className="text-gray-500 col-span-full">No classes found.</p>
         ) : (
-          classdatas && classdatas.results.length > 0 &&  classdatas?.results.map((level: any) => (
+          classes.map((level) => (
             <div key={level.id} className="relative">
               <ClassCard title={level.name} href={`${level.name}_${level.id}`} />
               <div className="absolute top-2 right-2 flex gap-1">
@@ -71,7 +101,7 @@ const Classes = () => {
                   onClick={() => {
                     setCurrentClass(level);
                     setShowUpdateClass(true);
-                  }}
+                  }} 
                 >
                   Edit
                 </button>
@@ -110,7 +140,9 @@ const Classes = () => {
             >
               ✕
             </button>
-            <AddOrUpdateClass onSuccess={handleAddSuccess} />
+            <Suspense fallback={<DataDisplayLoading count={1} />}>
+              <AddOrUpdateClass onSuccess={handleAddSuccess} />
+            </Suspense>
           </div>
         </div>
       )}
@@ -125,10 +157,12 @@ const Classes = () => {
             >
               ✕
             </button>
-            <AddOrUpdateClass
-              classData={currentClass} // pass current class data
-              onSuccess={handleUpdateSuccess}
-            />
+            <Suspense fallback={<DataDisplayLoading count={1} />}>
+              <AddOrUpdateClass
+                classData={currentClass}
+                onSuccess={handleUpdateSuccess}
+              />
+            </Suspense>
           </div>
         </div>
       )}

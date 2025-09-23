@@ -11,7 +11,7 @@ const page = async({params}:RouteParams) => {
     const [a,b] = decodeURIComponent(classid).split("_")
 const id = Number(b)
 
-const [data, subjectData, dashboard] = await Promise.all([
+const [subjectdata, subjectAnalytics, dashboardanalytics] = await Promise.all([
   getAllSubjects(),
   getEachSubjectAnalytics(),
   getDashboadAnalytics()
@@ -26,7 +26,7 @@ const [data, subjectData, dashboard] = await Promise.all([
 // console.log(a,b)
   return (
       <Suspense fallback={<FullpageLoading />}>
-      <Dashboard classid={id}  classname={a} />
+      <Dashboard classid={id}  classname={a} initialdata={{subjectdata, subjectAnalytics, dashboardanalytics}} />
     </Suspense>
   )
 } 
