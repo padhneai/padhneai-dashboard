@@ -1,24 +1,28 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { toast } from 'sonner';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-
-
+import useSWR from 'swr';
+import dynamic from 'next/dynamic';
 
 import { contentCategories } from '@/lib/constant';
 import { getFilteredPapers, deletePaper } from '@/services/paper';
 import SubjectHeader from '../Manageallcontent/SubjectHeader';
 import ProvinceFilter from '../Manageallcontent/ProvinceFilter';
 import TabsBar from '../Manageallcontent/TabsBar';
-import NotesTOCList from '../Manageallcontent/NoteTocList';
 import PapersGrid from '../Manageallcontent/PaperGrid';
-import useSWR from 'swr';
 import { getAllTOC } from '@/services/notes';
+import { toast } from 'sonner';
+import DataDisplayLoading from '../Loading/DataDisplayLoading';
 
-// Infer tab ids dynamically
+// Lazy load Notes component
+const NotesTOCList = dynamic(() => import('../Manageallcontent/NoteTocList'), {
+  ssr: false,
+  loading: () => <DataDisplayLoading />,
+});
+
 type TabId = typeof contentCategories[number]['id'];
 
 interface SubjectPageProps {
@@ -36,12 +40,8 @@ export default function SubjectPageContainer({
 }: SubjectPageProps) {
   const [activeTab, setActiveTab] = useState<TabId>('model-sets');
   const [selectedProvince, setSelectedProvince] = useState<string>('all');
-  const [papers, setPapers] = useState<PaperApiResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
 
-  
-
-
+  // Map tab ids to question types
   const categoryMap = useMemo(
     () => ({
       'model-sets': 'Model Question',
@@ -51,85 +51,48 @@ export default function SubjectPageContainer({
     []
   );
 
- const { data: notedata, mutate, isLoading } = useSWR("/notes", () =>
-    getAllTOC()
-  )
-
-  const fetchPapers = useCallback(async () => {
-    setLoading(true);
-    try {
-      const questionType = categoryMap[activeTab];
-      const params: Record<string, any> = {
+  // SWR for papers (dynamic key based on tab and province)
+  const { data: papersData, isLoading: papersLoading, mutate: mutatePapers } = useSWR(
+    activeTab !== 'notes'
+      ? ['/papers', activeTab, selectedProvince]
+      : null,
+    () =>
+      getFilteredPapers({
         subject: subjectname,
         class_level: classname,
-        question_type: questionType,
-      };
-      if (selectedProvince !== 'all') params.province = selectedProvince;
+        question_type: categoryMap[activeTab],
+        ...(selectedProvince !== 'all' && { province: selectedProvince }),
+      }),
+    { revalidateOnFocus: false }
+  );
 
-      const res = await getFilteredPapers(params);
-      console.log(res)
-      setPapers(res);
-    } catch (err) {
-      setPapers([]);
-      // toast.error('Failed to fetch papers');
-    } finally {
-      setLoading(false);
+  // SWR for notes
+  const { data: notesData } = useSWR(activeTab === 'notes' ? '/notes' : null, getAllTOC);
+
+  const memoizedPapers = useMemo(() => papersData?.results || [], [papersData]);
+  const headerCount = activeTab === 'notes' ? notesData?.results?.length ?? 0 : memoizedPapers.length;
+
+  const onDeletePaper = async (id: number) => {
+    try {
+      await deletePaper(id);
+      mutatePapers((prev: any) => {
+        if (!prev) return prev;
+        const filtered = prev.results.filter((p: any) => p.id !== id);
+        return { ...prev, results: filtered, count: filtered.length };
+      }, false);
+      toast.success('Paper deleted successfully');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to delete paper';
+      toast.error(message);
     }
-  }, [activeTab, selectedProvince, classname, subjectname, categoryMap]);
-
-  useEffect(() => {
-    if (activeTab !== 'notes') {
-      fetchPapers();
-    } else {
-      setPapers(null);
-      setLoading(false);
-    }
-  }, [activeTab, selectedProvince, fetchPapers]);
-
- const onDeletePaper = async (id: number) => {
-  try {
-    await deletePaper(id);
-
-    // setPapers((prev) => (prev?.results.filter((p) => p.id !== id)));
-    setPapers((prev) => {
-  if (!prev) return prev; // or return null if you prefer
-
-  const filteredResults = prev.results.filter((p) => p.id !== id);
-
-  // Optional: if no results left, return null
-  // if (filteredResults.length === 0) return null;
-
-  return {
-    ...prev,
-    results: filteredResults,
-    count: filteredResults.length, // 👈 Update count if needed
   };
-});
-
-    toast.success("Paper deleted successfully");
-  } catch (error: unknown) {
-    console.error("Delete paper failed:", error);
-
-    const message =
-      error instanceof Error ? error.message : "Failed to delete paper";
-
-    toast.error(message);
-  }
-};
-
-
-  const headerCount =
-  activeTab === "notes"
-    ? notedata?.results?.length ?? 0
-    : papers?.results.length ?? 0;
-
 
   return (
     <div className="min-h-screen">
       {/* Header */}
       <SubjectHeader subjectname={subjectname} classname={classname} itemCount={headerCount} />
 
-      {/* Province Filter */}
+      {/* Province Filter (only for papers) */}
       {activeTab !== 'notes' && (
         <ProvinceFilter value={selectedProvince} onChange={setSelectedProvince} />
       )}
@@ -157,31 +120,21 @@ export default function SubjectPageContainer({
               </Link>
             </div>
 
-            {/* Notes Tab */}
+            {/* Notes or Papers */}
             {c.id === 'notes' ? (
-              <NotesTOCList subjectId={subjectId} classname={classname} classid={classid} subjectname={subjectname} />
+              <NotesTOCList
+                subjectId={subjectId}
+                classname={classname}
+                classid={classid}
+                subjectname={subjectname}
+              />
             ) : (
               <>
-                {/* Loading Skeleton */}
-                {loading ? (
-                  <div className="grid gap-4">
-                    {[...Array(4)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="p-4 border rounded-lg animate-pulse bg-white shadow-sm"
-                      >
-                        <div className="h-4 bg-gray-300 rounded w-1/3 mb-4"></div>
-                        <div className="flex gap-2">
-                          <div className="h-3 w-10 bg-gray-300 rounded"></div>
-                          <div className="h-3 w-12 bg-gray-300 rounded"></div>
-                          <div className="h-3 w-16 bg-gray-300 rounded"></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : papers &&  papers?.results.length > 0 ? (
+                {papersLoading ? (
+                 <DataDisplayLoading />
+                ) : memoizedPapers.length > 0 ? (
                   <PapersGrid
-                    papers={papers?.results}
+                    papers={memoizedPapers}
                     routes={(paper) => ({
                       view: `/${classname}_${classid}/${subjectname}_${subjectId}/view-questions?id=${paper.id}`,
                       edit: `/${classname}_${classid}/${subjectname}_${subjectId}/edit-questions?id=${paper.id}`,

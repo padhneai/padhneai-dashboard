@@ -1,6 +1,8 @@
 import Dashboard from '@/components/customui/Dashboard';
+import FullpageLoading from '@/components/Loading/FullpageLoading';
 import { getDashboadAnalytics, getEachSubjectAnalytics } from '@/services/dashboard';
 import { getAllSubjects } from '@/services/subjects';
+import { Suspense } from 'react';
 
 const page = async({params}:RouteParams) => {
 
@@ -9,9 +11,12 @@ const page = async({params}:RouteParams) => {
     const [a,b] = decodeURIComponent(classid).split("_")
 const id = Number(b)
 
- const data = await getAllSubjects();
-const subjectData = await getEachSubjectAnalytics();
-const dashbaord = await getDashboadAnalytics()
+const [data, subjectData, dashboard] = await Promise.all([
+  getAllSubjects(),
+  getEachSubjectAnalytics(),
+  getDashboadAnalytics()
+]);
+
 
 
   
@@ -20,8 +25,14 @@ const dashbaord = await getDashboadAnalytics()
   
 // console.log(a,b)
   return (
-    <Dashboard classid={id}  classname={a} />
+      <Suspense fallback={<FullpageLoading />}>
+      <Dashboard classid={id}  classname={a} />
+    </Suspense>
   )
 } 
 
 export default page
+
+
+
+

@@ -1,23 +1,29 @@
 import SubjectPage from '@/components/customui/SubjectPage'
+import FullpageLoading from '@/components/Loading/FullpageLoading';
 import { getAllNotes, getAllTOC } from '@/services/notes';
 
-import React from 'react'
+import React, { Suspense } from 'react'
 
 const page =async ({params}:RouteParams) => {
     const {subjectid,classid} = await params;
     const [a,b] = classid.split("_")
     const [c,d]= subjectid.split("_")
     const classname = decodeURIComponent(a)
-// console.log(classname,b,c,d)
-  // const data = await getAllNotes()
-  const gettoc = await getAllTOC()
-  // console.log(gettoc)
-    const data = await getAllNotes()
-    // console.log(data)
+
+    const [gettoc, data] = await Promise.all([
+        getAllTOC(),
+        getAllNotes()
+      ])
+ 
+
 
     
   return (
+
+     <Suspense fallback={<FullpageLoading />}>
     <SubjectPage subjectname = {c} subjectId={d} classname={classname} classid={b} />
+          
+        </Suspense>
   )
 }
 
