@@ -3,17 +3,14 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import MetadataForm from './MetadataForm';
 import QuestionItem from './QuestionItem';
 import { createPaper, updatePaper } from '@/services/paper';
 import { toast } from 'sonner';
-import { FileQuestion, MapPin, Calendar, Plus, Save, BookOpen, Users, Award } from 'lucide-react';
+import { FileQuestion, MapPin, Calendar, Plus, Save, BookOpen, Users, Award, Minus } from 'lucide-react';
 import axios from 'axios';
 import LoadingOverlay from '../Loading/LoadingOverlay';
 
-// Category & Province options
 const CATEGORY_MAP: Record<string, string> = {
   'model-sets': 'Model Question',
   'question-banks': '10 Set',
@@ -43,7 +40,7 @@ interface QuestionFormProps {
 export default function QuestionForm({ contentType, subjectId, subjectname, classname, classid, initialData, mode = 'add' }: QuestionFormProps) {
   const actualSubjectId = mode === 'edit' ? (initialData?.subject.id || subjectId) : (subjectId || '');
   const actualClassno = mode === 'edit' ? (initialData?.subject.class_level || classid) : (classid || '');
-const [submitting, setSubmitting] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [submitting, setSubmitting] = useState<'idle' | 'loading' | 'success'>('idle');
 
   const [province, setProvince] = useState<string>(initialData?.province || '');
   const [metadescription, setMetadescription] = useState<string>(initialData?.metadescription || '');
@@ -51,14 +48,15 @@ const [submitting, setSubmitting] = useState<'idle' | 'loading' | 'success'>('id
   const categorytype = initialData?.question_type || CATEGORY_MAP[contentType] || 'Model Question';
   const [questions, setQuestions] = useState<ExamQuestion[]>(initialData?.questions || []);
 
-  // Collapse state for each question
-  const [expandedQuestions, setExpandedQuestions] = useState<boolean[]>(
-    initialData?.questions?.map(() => true) || []
-  );
+  // Collapse state — everything hidden by default
+  const [provinceExpanded, setProvinceExpanded] = useState(false);
+  const [metadataExpanded, setMetadataExpanded] = useState(false);
+  const [questionsExpanded, setQuestionsExpanded] = useState(false);
+  const [expandedQuestions, setExpandedQuestions] = useState<boolean[]>(initialData?.questions?.map(() => false) || []);
 
+  // Only one question expanded at a time
   const toggleQuestion = (index: number) => {
-    const updated = [...expandedQuestions];
-    updated[index] = !updated[index];
+    const updated = questions.map((_, i) => i === index ? !expandedQuestions[i] : false);
     setExpandedQuestions(updated);
   };
 
@@ -77,7 +75,8 @@ const [submitting, setSubmitting] = useState<'idle' | 'loading' | 'success'>('id
         },
       },
     ]);
-    setExpandedQuestions([...expandedQuestions, true]); // expand new question by default
+    setExpandedQuestions([...expandedQuestions.map(() => false), true]);
+    setQuestionsExpanded(true);
   };
 
   const removeQuestion = (index: number) => {
@@ -97,355 +96,149 @@ const [submitting, setSubmitting] = useState<'idle' | 'loading' | 'success'>('id
     setQuestions(updated);
   };
 
-  // const handleImageUpload = (file: File, index: number, type: 'question' | 'answer') => {
-  //   if (file.size > 2 * 1024 * 1024) {
-  //     alert('File size must be under 2MB');
-  //     return;
-  //   }
-  //   const reader = new FileReader();
-  //   reader.onloadend = () => {
-  //     const url = reader.result as string;
-  //     if (type === 'question') {
-  //       updateQuestion(index, 'question_image', url); 
-  //     } else {
-  //       updateAnswerSheet(index, 'answer_image', url);
-  //     }
-  //   };
-  //   reader.readAsDataURL(file);
-  // };
-
-
-
+  // Image handling (upload, update, delete)
   const handleImageUpload = async (file: File, index: number, type: 'question' | 'answer') => {
-  if (file.size > 2 * 1024 * 1024) {
-    alert('File size must be under 2MB');
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("file", file);
-
-  try {
-    const response = await axios.post('/api/imageupload/', formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    const publicId = response.data?.publicId; // <- backend must return this
-console.log(response)
-
-    if (!publicId) {
-      toast.error("Upload failed: no publicId returned");
-      return;
-    }
-
-    if (type === 'question') {
-      updateQuestion(index, 'question_image', publicId); 
-    } else {
-      updateAnswerSheet(index, 'answer_image', publicId);
-    }
-  } catch (error) {
-    console.error("Image upload failed:", error);
-    toast.error("Failed to upload image");
-  }
-};
-
-
-const handleImageUpdate = async (file: File, currentPublicId: string, index: number, type: 'question' | 'answer') => {
-  if (!currentPublicId) {
-    // fallback: if no previous image, just upload
-    await handleImageUpload(file, index, type);
-    toast.success("Image uploaded successfully");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("oldPublicId", currentPublicId);
-
-  try {
-    const response = await axios.put('/api/imageupload/', formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    const newPublicId = response.data?.publicId;
-    if (!newPublicId) {
-      toast.error("Update failed: no publicId returned");
-      return;
-    }
-
-    // Update local state
-    if (type === 'question') {
-      updateQuestion(index, 'question_image', newPublicId);
-    } else {
-      updateAnswerSheet(index, 'answer_image', newPublicId);
-    }
-
-    toast.success("Image updated successfully");
-  } catch (error) {
-    console.error("Image update failed:", error);
-    toast.error("Failed to update image");
-  }
-};
-
-
-const handleImageDelete = async (index: number, type: 'question' | 'answer') => {
-  try {
-    const imageId = type === 'question'
-      ? questions[index].question_image
-      : questions[index].answer_sheet.answer_image;
-
-    if (!imageId) {
-      toast.error("No image to delete");
-      return;
-    }
-
-    // Call backend delete endpoint
-    await axios.post("/api/imagedelete", { publicId: imageId });
-
-    // Update state: clear the image
-    if (type === 'question') {
-      updateQuestion(index, 'question_image', null);
-    } else {
-      updateAnswerSheet(index, 'answer_image', null);
-    }
-
-    toast.success("Image deleted successfully");
-  } catch (error) {
-    console.error("Delete failed:", error);
-    toast.error("Failed to delete image");
-  }
-};
-
-
-
-
-
-  const resetForm = () => {
-    setProvince('');
-    setMetadescription('');
-    setYear('');
-    setQuestions([]);
-    setExpandedQuestions([]);
+    if (file.size > 2 * 1024 * 1024) { toast.warning('File size must be under 2MB'); return; }
+    const formData = new FormData(); formData.append("file", file);
+    try {
+      const res = await axios.post('/api/imageupload/', formData, { headers: { "Content-Type": "multipart/form-data" }});
+      const publicId = res.data?.publicId;
+      if (!publicId) return toast.error("Upload failed");
+      type === 'question' ? updateQuestion(index, 'question_image', publicId) : updateAnswerSheet(index, 'answer_image', publicId);
+      toast.success("Image uploaded successfully");
+    } catch (e) { console.error(e); toast.error("Upload failed"); }
   };
 
-   // handleSubmit with overlay
+  const handleImageUpdate = async (file: File, currentPublicId: string, index: number, type: 'question' | 'answer') => {
+    if (!currentPublicId) return handleImageUpload(file, index, type);
+    const formData = new FormData(); formData.append("file", file); formData.append("oldPublicId", currentPublicId);
+    try {
+      const res = await axios.put('/api/imageupload/', formData, { headers: { "Content-Type": "multipart/form-data" }});
+      const newId = res.data?.publicId;
+      if (!newId) return toast.error("Update failed");
+      type === 'question' ? updateQuestion(index, 'question_image', newId) : updateAnswerSheet(index, 'answer_image', newId);
+      toast.success("Image updated successfully");
+    } catch (e) { console.error(e); toast.error("Update failed"); }
+  };
+
+  const handleImageDelete = async (index: number, type: 'question' | 'answer') => {
+    try {
+      const imageId = type === 'question' ? questions[index].question_image : questions[index].answer_sheet.answer_image;
+      if (!imageId) return toast.error("No image to delete");
+      await axios.post("/api/imagedelete", { publicId: imageId });
+      type === 'question' ? updateQuestion(index, 'question_image', null) : updateAnswerSheet(index, 'answer_image', null);
+      toast.success("Image deleted successfully");
+    } catch (e) { console.error(e); toast.error("Delete failed"); }
+  };
+
+  const resetForm = () => {
+    setProvince(''); setMetadescription(''); setYear(''); setQuestions([]); setExpandedQuestions([]);
+    setProvinceExpanded(false); setMetadataExpanded(false); setQuestionsExpanded(false);
+  };
+
   const handleSubmit = async () => {
-    if (!province || !metadescription || !year) {
-      toast.warning('Please fill in all main fields');
-      return;
-    }
+    if (!province || !metadescription || !year) return toast.warning('Please fill all fields');
+    if (!actualSubjectId || !actualClassno) return toast.warning('Subject and class required');
 
-    if (!actualSubjectId || !actualClassno) {
-      toast.warning('Subject and class information is required');
-      return;
-    }
-
-    const jsonData = {
-      province,
-      subject_id: Number(actualSubjectId),
-      class_level_id: Number(actualClassno),
-      year,
-      metadescription,
-      question_type: categorytype,
-      questions,
-    };
-
+    const jsonData = { province, subject_id: Number(actualSubjectId), class_level_id: Number(actualClassno), year, metadescription, question_type: categorytype, questions };
     try {
       setSubmitting('loading');
-
-      if (mode === 'edit' && initialData?.id) {
-        await updatePaper(initialData.id, jsonData);
-        toast.success('Paper updated successfully!');
-      } else {
-        await createPaper(jsonData);
-        toast.success('Paper created successfully!');
-        resetForm();
-      }
-
-      // Show success overlay
+      mode === 'edit' && initialData?.id ? await updatePaper(initialData.id, jsonData) : await createPaper(jsonData);
+      toast.success(mode === 'edit' ? 'Paper updated!' : 'Paper created!');
       setSubmitting('success');
-      setTimeout(() => {
-        setSubmitting('idle');
-      }, 2000);
-    } catch (error) {
-      console.error(error);
-      const action = mode === 'edit' ? 'update' : 'create';
-      toast.error(`Failed to ${action} paper`);
+      resetForm();
+    } catch (e) {
+      console.error(e);
+      toast.error(`Failed to ${mode === 'edit' ? 'update' : 'create'} paper`);
       setSubmitting('idle');
-    }
+    } finally { setTimeout(() => setSubmitting('idle'), 2000); }
   };
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-purple-50 to-blue-100">
       <div className="max-w-7xl mx-auto p-6">
-        {/* Header Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-purple-100 rounded-xl">
-                <FileQuestion className="w-8 h-8 text-purple-600" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {mode === 'edit' ? 'Edit' : 'Create'} Question Paper
-                </h1>
-                <div className="flex items-center gap-4 text-sm">
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium flex items-center gap-1">
-                    <BookOpen className="w-3 h-3" />
-                     class {classname}
-                  </span>
-                  <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-medium">
-                    {subjectname}
-                  </span>
-                  <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full font-medium flex items-center gap-1">
-                    <Award className="w-3 h-3" />
-                    {categorytype}
-                  </span>
-                </div>
-              </div>
+
+        {/* Header */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">{mode === 'edit' ? 'Edit' : 'Create'} Question Paper</h1>
+            <div className="flex gap-4 mt-2">
+              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">{classname}</span>
+              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full">{subjectname}</span>
+              <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full">{categorytype}</span>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-500 mb-1">Total Questions</p>
-              <p className="text-2xl font-bold text-purple-600">{questions.length}</p>
-            </div>
+          </div>
+          <div className="text-right">
+            <p>Total Questions</p>
+            <p className="text-2xl font-bold text-purple-600">{questions.length}</p>
           </div>
         </div>
 
-        {/* Configuration Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <MapPin className="w-5 h-5 text-purple-600" />
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900">Paper Configuration</h2>
+        {/* Province Section */}
+        <div className="bg-white rounded-2xl shadow-lg mb-6">
+          <div className="flex justify-between items-center p-4 bg-gray-50 cursor-pointer rounded-2xl" onClick={() => setProvinceExpanded(prev => !prev)}>
+            <h2 className="font-semibold text-lg">Province</h2>
+            <span>{provinceExpanded ? <Minus /> : <Plus />}</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                Province *
-              </label>
+          {provinceExpanded && (
+            <div className="p-4">
               <Select value={province} onValueChange={setProvince}>
                 <SelectTrigger className="border-2 border-gray-200 focus:border-purple-500 rounded-xl px-4 py-3">
                   <SelectValue placeholder="Select Province" />
                 </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {PROVINCES.map((p) => (
-                    <SelectItem key={p} value={p} className="py-3">{p}</SelectItem>
-                  ))}
-                </SelectContent>
+                <SelectContent>{PROVINCES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Metadata Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Calendar className="w-5 h-5 text-blue-600" />
-            </div>
-            <h2 className="text-xl font-semibold text-gray-900">Paper Details</h2>
+        <div className="bg-white rounded-2xl shadow-lg mb-6">
+          <div className="flex justify-between items-center p-4 bg-gray-50 cursor-pointer rounded-xl" onClick={() => setMetadataExpanded(prev => !prev)}>
+            <h2 className="font-semibold text-lg">Metadata</h2>
+            <span>{metadataExpanded ? <Minus /> : <Plus />}</span>
           </div>
-          <MetadataForm
-            Metadescription={metadescription}
-            setMetadescription={setMetadescription}
-            year={year}
-            setYear={setYear}
-          />
+          {metadataExpanded && <div className="p-4"><MetadataForm Metadescription={metadescription} setMetadescription={setMetadescription} year={year} setYear={setYear} /></div>}
         </div>
 
         {/* Questions Section */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Users className="w-5 h-5 text-green-600" />
-                </div>
-                <h2 className="text-xl font-semibold text-gray-900">Questions</h2>
-              </div>
-            </div>
-
-            {questions.length === 0 ? (
-              <div className="text-center py-12">
-                <FileQuestion className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg mb-2">No questions added yet</p>
-                <p className="text-gray-400 text-sm">Click "Add Question" to start creating your question paper</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {questions.map((q, index) => (
-                  <div key={index} className="border border-gray-200 rounded-xl overflow-hidden">
-                    {/* Collapsible Header */}
-                    <div
-                      className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer"
-                      onClick={() => toggleQuestion(index)}
-                    >
-                      <p className="font-semibold">Question {q.q_no}</p>
-                      <span className="text-gray-500">{expandedQuestions[index] ? '−' : '+'}</span>
-                    </div>
-
-                    {/* Collapsible Content */}
-                    {expandedQuestions[index] && (
-                      <div className="p-4">
-                        <QuestionItem
-                          index={index}
-                          question={q}
-                          updateQuestion={updateQuestion}
-                          updateAnswerSheet={updateAnswerSheet}
-                          removeQuestion={removeQuestion}
-                          handleImageUpload={handleImageUpload}
-                          handleImageUpdate={handleImageUpdate}
-                          handleImageDelete={handleImageDelete}
-                        />
-                      </div>
-                    )}
+        <div className="bg-white rounded-2xl shadow-lg mb-6">
+          <div className="flex justify-between items-center p-4 bg-gray-50 cursor-pointer rounded-xl" onClick={() => setQuestionsExpanded(prev => !prev)}>
+            <h2 className="font-semibold text-lg">Questions</h2>
+            <span>{questionsExpanded ? <Minus /> : <Plus />}</span>
+          </div>
+          {questionsExpanded && (
+            <div className="p-4 space-y-4">
+              {questions.map((q, i) => (
+                <div key={i} className="border border-gray-200 rounded-xl overflow-hidden">
+                  <div className="flex justify-between items-center p-4 bg-gray-50 cursor-pointer" onClick={() => toggleQuestion(i)}>
+                    <p className="font-semibold">Question {q.q_no}</p>
+                    <span>{expandedQuestions[i] ? <Minus /> : <Plus />}</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  {expandedQuestions[i] && (
+                    <div className="p-4">
+                      <QuestionItem
+                        index={i} question={q} updateQuestion={updateQuestion} updateAnswerSheet={updateAnswerSheet}
+                        removeQuestion={removeQuestion} handleImageUpload={handleImageUpload} handleImageUpdate={handleImageUpdate}
+                        handleImageDelete={handleImageDelete}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+              <Button onClick={addQuestion} className="mt-4 flex items-center gap-2"><Plus /> Add Question</Button>
+            </div>
+          )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mt-8">
-          <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-            <div className="text-sm text-gray-600">
-              <p className="font-medium">Ready to {mode === 'edit' ? 'update' : 'publish'}?</p>
-              <p>Make sure all required fields are filled and questions are complete.</p>
-            </div>
-            <div className="flex gap-3">
-              <Button 
-                onClick={addQuestion}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl flex items-center gap-2 text-white font-semibold shadow-lg"
-              >
-                <Plus className="w-4 h-4" /> Add Question
-              </Button>
-              <Button 
-                variant="outline" 
-                className="px-6 py-3 rounded-xl border-2 border-gray-300 hover:border-gray-400"
-              >
-                Save as Draft
-              </Button>
-              <Button 
-                onClick={handleSubmit} 
-                className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl flex items-center gap-2 text-white font-semibold shadow-lg"
-              >
-                <Save className="w-5 h-5" /> 
-                {mode === 'edit' ? 'Update Paper' : 'Publish Paper'}
-              </Button>
-            </div>
-          </div>
+        {/* Submit */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mt-8 flex justify-between items-center">
+          <Button onClick={handleSubmit} className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl flex items-center gap-2"><Save /> {mode === 'edit' ? 'Update Paper' : 'Publish Paper'}</Button>
         </div>
+
       </div>
 
-
-      
- {submitting !== 'idle' && (
-  <LoadingOverlay submitting={submitting} mode={mode} />
-)}
-
-     
+      {submitting !== 'idle' && <LoadingOverlay submitting={submitting} mode={mode} />}
     </div>
   );
 }

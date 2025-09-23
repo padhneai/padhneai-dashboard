@@ -6,12 +6,14 @@ export default function Texteditor({
   id,
   placeholder,
   label,
+  height
 }: {
   label: string;
   content: string;
   setContent: (value: string) => void;
   id: string;
   placeholder?: string;
+  height?: number;
 }) {
   const apikey  = process.env.NEXT_PUBLIC_TINYMCE_API_KEY!;
   
@@ -24,7 +26,7 @@ export default function Texteditor({
         onEditorChange={(newContent) => setContent(newContent)}
         id={id}
         init={{
-          height: 500,
+          height: height || 500,
           width: "100%",
           menubar: false,
           placeholder: placeholder || "Start writing here...",

@@ -39,6 +39,7 @@ export default function AnswerSheetForm({
   handleImageDelete,
 }: AnswerSheetFormProps) {
   const [loading, setLoading] = useState<'upload' | 'update' | 'delete' | null>(null);
+  const [selectedLang, setSelectedLang] = useState<'english' | 'nepali' | 'both' | null>(null);
 
   const currentImage = answer_sheet.answer_image;
   const currentImageUrl = `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/${currentImage}`;
@@ -78,96 +79,138 @@ export default function AnswerSheetForm({
     <div>
       <h3 className="font-semibold mt-4">Answer Sheet</h3>
 
-      {/* English Answer */}
-      <Texteditor
-        label="Answer in English"
-        id={'answer-english-' + index}
-        content={answer_sheet.answer_english}
-        setContent={(content) => updateAnswerSheet(index, 'answer_english', content)}
-        placeholder="Answer in English"
-      />
-
-      {/* Nepali Answer */}
-      <Texteditor
-        label="Answer in Nepali"
-        id={'answer-nepali-' + index}
-        content={answer_sheet.answer_nepali}
-        setContent={(content) => updateAnswerSheet(index, 'answer_nepali', content)}
-        placeholder="Answer in Nepali"
-      />
-
-      {/* Answer Image */}
-      <div className="border-2 border-dashed rounded-lg p-4 text-center hover:bg-gray-50 mt-4">
-        {!currentImage ? (
-          <label className="cursor-pointer inline-flex items-center gap-2 text-sm text-blue-600 font-medium">
-            {loading === 'upload' ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              'Upload Image'
-            )}
-            <input
-              type="file"
-              className="hidden"
-              accept="image/*"
-              disabled={loading === 'upload'}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  if (file.size > 2 * 1024 * 1024) {
-                    alert('Image size should be under 2MB');
-                    return;
-                  }
-                  onUpload(file);
-                }
-              }}
-            />
-          </label>
-        ) : (
-          <div className="relative inline-block">
-            <Image
-              src={currentImageUrl}
-              alt="Preview"
-              width={200}
-              height={200}
-              className="rounded"
-            />
-            <div className="absolute top-0 right-0 flex flex-col gap-1">
-              {/* Update Button */}
-              <label className="bg-blue-500 text-white text-xs px-2 py-1 rounded cursor-pointer flex items-center justify-center">
-                {loading === 'update' ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  'Update'
-                )}
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  disabled={loading === 'update'}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) onUpdate(file);
-                  }}
-                />
-              </label>
-
-              {/* Delete Button */}
-              <button
-                type="button"
-                className="bg-red-500 text-white text-xs px-2 py-1 rounded flex items-center justify-center"
-                onClick={onDelete}
-                disabled={loading === 'delete'}
-              >
-                {loading === 'delete' ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  'Delete'
-                )}
-              </button>
-            </div>
-          </div>
-        )}
+      {/* Language Selector */}
+      <div className="flex gap-2 flex-wrap mb-3">
+        <button
+          className={`px-3 py-1 text-sm rounded ${
+            selectedLang === 'english'
+              ? 'bg-blue-600 text-white'
+              : 'border border-gray-300'
+          }`}
+          onClick={() => setSelectedLang('english')}
+          type="button"
+        >
+          English Answer
+        </button>
+        <button
+          className={`px-3 py-1 text-sm rounded ${
+            selectedLang === 'nepali'
+              ? 'bg-blue-600 text-white'
+              : 'border border-gray-300'
+          }`}
+          onClick={() => setSelectedLang('nepali')}
+          type="button"
+        >
+          Nepali Answer
+        </button>
+        <button
+          className={`px-3 py-1 text-sm rounded ${
+            selectedLang === 'both'
+              ? 'bg-blue-600 text-white'
+              : 'border border-gray-300'
+          }`}
+          onClick={() => setSelectedLang('both')}
+          type="button"
+        >
+          Both
+        </button>
       </div>
+
+      {/* Render Selected Editors */}
+      {selectedLang === 'english' || selectedLang === 'both' ? (
+        <Texteditor
+          label="Answer in English"
+          id={'answer-english-' + index}
+          content={answer_sheet.answer_english}
+          setContent={(content) => updateAnswerSheet(index, 'answer_english', content)}
+          placeholder="Answer in English"
+        />
+      ) : null}
+
+      {selectedLang === 'nepali' || selectedLang === 'both' ? (
+        <Texteditor
+          label="Answer in Nepali"
+          id={'answer-nepali-' + index}
+          content={answer_sheet.answer_nepali}
+          setContent={(content) => updateAnswerSheet(index, 'answer_nepali', content)}
+          placeholder="Answer in Nepali"
+        />
+      ) : null}
+
+      {/* Answer Image Upload */}
+      {selectedLang && (
+        <div className="border-2 border-dashed rounded-lg p-4 text-center hover:bg-gray-50 mt-4">
+          {!currentImage ? (
+            <label className="cursor-pointer inline-flex items-center gap-2 text-sm text-blue-600 font-medium">
+              {loading === 'upload' ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                'Upload Answer Image'
+              )}
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                disabled={loading === 'upload'}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.size > 2 * 1024 * 1024) {
+                      alert('Image size should be under 2MB');
+                      return;
+                    }
+                    onUpload(file);
+                  }
+                }}
+              />
+            </label>
+          ) : (
+            <div className="relative inline-block">
+              <Image
+                src={currentImageUrl}
+                alt="Preview"
+                width={200}
+                height={200}
+                className="rounded"
+              />
+              <div className="absolute top-0 right-0 flex flex-col gap-1">
+                {/* Update Button */}
+                <label className="bg-blue-500 text-white text-xs px-2 py-1 rounded cursor-pointer flex items-center justify-center">
+                  {loading === 'update' ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    'Update'
+                  )}
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    disabled={loading === 'update'}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) onUpdate(file);
+                    }}
+                  />
+                </label>
+
+                {/* Delete Button */}
+                <button
+                  type="button"
+                  className="bg-red-500 text-white text-xs px-2 py-1 rounded flex items-center justify-center"
+                  onClick={onDelete}
+                  disabled={loading === 'delete'}
+                >
+                  {loading === 'delete' ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    'Delete'
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

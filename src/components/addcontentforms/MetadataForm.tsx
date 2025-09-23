@@ -24,9 +24,10 @@ export default function MetadataForm({
   const nepaliYears: number[] = Array.from({ length: currentNepaliYear - 2070 + 1 }, (_, i) => 2070 + i);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 ">
       <Texteditor
         label=""
+        height={300}
         id="metadescription"
         content={Metadescription}
         setContent={(content) => setMetadescription(content)}
