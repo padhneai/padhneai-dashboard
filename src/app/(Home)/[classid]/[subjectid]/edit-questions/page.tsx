@@ -8,6 +8,7 @@ const page = async({params,searchParams}:RouteParams) => {
   const paperidno = Number(id)
   
   const paperdata = await getPaperById(paperidno)
+  console.log(paperdata)
   
   // In edit mode, QuestionForm will automatically use data from initialData
   // No need to pass subjectId and classno since they're in the paperdata

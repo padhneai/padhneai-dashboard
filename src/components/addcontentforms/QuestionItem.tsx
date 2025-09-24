@@ -25,13 +25,13 @@ interface QuestionItemProps {
     file: File,
     index: number,
     type: 'question' | 'answer'
-  ) => Promise<void> | void;
+  ) =>  void;
   handleImageUpdate?: (
     file: File,
     currentPublicId: string,
     index: number,
     type: 'question' | 'answer'
-  ) => Promise<void> | void;
+  ) =>  void;
   handleImageDelete?: (
     index: number,
     type: 'question' | 'answer'

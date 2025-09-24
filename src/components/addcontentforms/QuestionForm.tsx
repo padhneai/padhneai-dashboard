@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
@@ -10,14 +10,14 @@ import { toast } from 'sonner';
 import { Plus, Save, Minus } from 'lucide-react';
 import axios from 'axios';
 import LoadingOverlay from '../Loading/LoadingOverlay';
-import { List } from "react-window";
 import DataDisplayLoading from '../Loading/DataDisplayLoading';
+import QuestionItem from './QuestionItem';
 
-// Lazy load QuestionItem to improve initial load
-const QuestionItem = dynamic(() => import('@/components/addcontentforms/QuestionItem'), {
-  ssr: false,
-  loading: () => <DataDisplayLoading count={5} />,
-});
+// Lazy load QuestionItem
+// const QuestionItem = dynamic(() => import('@/components/addcontentforms/QuestionItem'), {
+//   ssr: false,
+//   loading: () => <DataDisplayLoading count={5} />,
+// });
 
 const CATEGORY_MAP: Record<string, string> = {
   'model-sets': 'Model Question',
@@ -69,7 +69,7 @@ export default function QuestionForm({
   const [metadataExpanded, setMetadataExpanded] = useState(false);
   const [questionsExpanded, setQuestionsExpanded] = useState(false);
 
-  // Only one question expanded at a time
+  // Expand/collapse one question at a time
   const toggleQuestion = useCallback((index: number) => {
     setExpandedQuestions(prev => prev.map((val, i) => i === index ? !val : false));
   }, []);
@@ -98,90 +98,101 @@ export default function QuestionForm({
     setExpandedQuestions(prev => prev.filter((_, i) => i !== index));
   }, []);
 
-  const updateQuestion = useCallback(<K extends keyof ExamQuestion>(index: number, field: K, value: ExamQuestion[K]) => {
-    setQuestions(prev => {
+const updateQuestion = useCallback(
+  <K extends keyof ExamQuestion>(
+    index: number,
+    field: K,
+    value: ExamQuestion[K]
+  ) => {
+    setQuestions((prev) => {
       const copy = [...prev];
       copy[index][field] = value;
       return copy;
     });
-  }, []);
+  },
+  []
+);
 
-  const updateAnswerSheet = useCallback(<K extends keyof AnswerSheet>(index: number, field: K, value: AnswerSheet[K]) => {
-    setQuestions(prev => {
+const updateAnswerSheet = useCallback(
+  <K extends keyof AnswerSheet>(
+    index: number,
+    field: K,
+    value: AnswerSheet[K]
+  ) => {
+    setQuestions((prev) => {
       const copy = [...prev];
       copy[index].answer_sheet[field] = value;
       return copy;
     });
-  }, []);
-
-// Original handleImageUpload
-const handleImageUpload = async (file: File, index: number, type: 'question' | 'answer'): Promise<void> => {
-  if (file.size > 2 * 1024 * 1024) { toast.warning('File size must be under 2MB'); return; }
-  const formData = new FormData(); 
-  formData.append("file", file);
-  try {
-    const res = await axios.post('/api/imageupload/', formData, { headers: { "Content-Type": "multipart/form-data" }});
-    const publicId = res.data?.publicId;
-    if (!publicId) return toast.error("Upload failed");
-
-    if (type === 'question') updateQuestion(index, 'question_image', publicId);
-    else updateAnswerSheet(index, 'answer_image', publicId);
-
-    toast.success("Image uploaded successfully");
-  } catch (e) {
-    console.error(e);
-    toast.error("Upload failed");
-  }
-};
+  },
+  []
+);
 
 
-// Original handleImageUpdate
-const handleImageUpdate = async (file: File, currentPublicId: string, index: number, type: 'question' | 'answer'): Promise<void> => {
-  if (!currentPublicId) return handleImageUpload(file, index, type);
+  // Image upload handlers
+  const handleImageUpload = async (file: File, index: number, type: 'question' | 'answer') => {
+    if (file.size > 2 * 1024 * 1024) { toast.warning('File size must be under 2MB'); return; }
+    const formData = new FormData(); 
+    formData.append("file", file);
+    try {
+      const res = await axios.post('/api/imageupload/', formData, { headers: { "Content-Type": "multipart/form-data" }});
+      const publicId = res.data?.publicId;
+      if (!publicId) return toast.error("Upload failed");
 
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("oldPublicId", currentPublicId);
+      if (type === 'question') updateQuestion(index, 'question_image', publicId);
+      else updateAnswerSheet(index, 'answer_image', publicId);
 
-  try {
-    const res = await axios.put('/api/imageupload/', formData, { headers: { "Content-Type": "multipart/form-data" }});
-    const newId = res.data?.publicId;
-    if (!newId) return toast.error("Update failed");
-
-    if (type === 'question') updateQuestion(index, 'question_image', newId);
-    else updateAnswerSheet(index, 'answer_image', newId);
-
-    toast.success("Image updated successfully");
-  } catch (e) {
-    console.error(e);
-    toast.error("Update failed");
-  }
-};
-
-
-const handleImageDelete = async (index: number, type: 'question' | 'answer'): Promise<void> => {
-  try {
-    const imageId = type === 'question' 
-      ? questions[index].question_image 
-      : questions[index].answer_sheet.answer_image;
-
-    if (!imageId) {
-      toast.error("No image to delete");
-      return;
+      toast.success("Image uploaded successfully");
+    } catch (e) {
+      console.error(e);
+      toast.error("Upload failed");
     }
+  };
 
-    await axios.post("/api/imagedelete", { publicId: imageId });
+  const handleImageUpdate = async (file: File, currentPublicId: string, index: number, type: 'question' | 'answer') => {
+    if (!currentPublicId) return handleImageUpload(file, index, type);
 
-    if (type === 'question') updateQuestion(index, 'question_image', null);
-    else updateAnswerSheet(index, 'answer_image', null);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("oldPublicId", currentPublicId);
 
-    toast.success("Image deleted successfully");
-  } catch (e) {
-    console.error(e);
-    toast.error("Delete failed");
-  }
-};
+    try {
+      const res = await axios.put('/api/imageupload/', formData, { headers: { "Content-Type": "multipart/form-data" }});
+      const newId = res.data?.publicId;
+      if (!newId) return toast.error("Update failed");
 
+      if (type === 'question') updateQuestion(index, 'question_image', newId);
+      else updateAnswerSheet(index, 'answer_image', newId);
+
+      toast.success("Image updated successfully");
+    } catch (e) {
+      console.error(e);
+      toast.error("Update failed");
+    }
+  };
+
+  const handleImageDelete = async (index: number, type: 'question' | 'answer'): Promise<void> => {
+    try {
+      const imageId = type === 'question' 
+        ? questions[index].question_image 
+        : questions[index].answer_sheet.answer_image;
+
+      if (!imageId) {
+        toast.error("No image to delete");
+        return;
+      }
+
+      await axios.post("/api/imagedelete", { publicId: imageId });
+
+      if (type === 'question') updateQuestion(index, 'question_image', null);
+      else updateAnswerSheet(index, 'answer_image', null);
+
+      toast.success("Image deleted successfully");
+    } catch (e) {
+      console.error(e);
+      toast.error("Delete failed");
+    }
+  };
 
   const resetForm = () => {
     setProvince(''); setMetadescription(''); setYear('');
@@ -205,32 +216,6 @@ const handleImageDelete = async (index: number, type: 'question' | 'answer'): Pr
       toast.error(`Failed to ${mode === 'edit' ? 'update' : 'create'} paper`);
       setSubmitting('idle');
     } finally { setTimeout(() => setSubmitting('idle'), 2000); }
-  };
-
-  // Virtualized row renderer
-  const Row = ({ index, style }: { index: number, style: any }) => {
-    const q = questions[index];
-    const isExpanded = expandedQuestions[index];
-    return (
-      <div style={style} className="mb-4">
-        <div className="border border-gray-200 rounded-xl overflow-hidden">
-          <div className="flex justify-between items-center p-4 bg-gray-50 cursor-pointer" onClick={() => toggleQuestion(index)}>
-            <p className="font-semibold">Question {q.q_no}</p>
-            <span>{isExpanded ? <Minus /> : <Plus />}</span>
-          </div>
-          {isExpanded && (
-            <div className="p-4">
-              <QuestionItem
-                index={index} question={q} updateQuestion={updateQuestion} updateAnswerSheet={updateAnswerSheet}
-                removeQuestion={removeQuestion} handleImageUpload={handleImageUpload} handleImageUpdate={handleImageUpdate}
-                handleImageDelete={handleImageDelete}
-              />
-            </div>
-      
-          )}
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -289,14 +274,36 @@ const handleImageDelete = async (index: number, type: 'question' | 'answer'): Pr
           {questionsExpanded && (
             <div className="p-4">
               {questions.length > 0 ? (
-                <List
-                  height={600}
-                  itemCount={questions.length}
-                  itemSize={180}
-                  width="100%"
-                >
-                  {Row}
-                </List>
+                <div className="space-y-4">
+                  {questions.map((q, index) => {
+                    const isExpanded = expandedQuestions[index];
+                    return (
+                      <div key={index} className="border border-gray-200 rounded-xl overflow-hidden">
+                        <div
+                          className="flex justify-between items-center p-4 bg-gray-50 cursor-pointer"
+                          onClick={() => toggleQuestion(index)}
+                        >
+                          <p className="font-semibold">Question {q.q_no}</p>
+                          <span>{isExpanded ? <Minus /> : <Plus />}</span>
+                        </div>
+                        {isExpanded && (
+                          <div className="p-4">
+                            <QuestionItem
+                              index={index}
+                              question={q}
+                              updateQuestion={updateQuestion}
+                              updateAnswerSheet={updateAnswerSheet}
+                              removeQuestion={removeQuestion}
+                              handleImageUpload={handleImageUpload}
+                              handleImageUpdate={handleImageUpdate}
+                              handleImageDelete={handleImageDelete}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               ) : <p className="text-center py-8">No questions added yet.</p>}
               <Button onClick={addQuestion} className="mt-4 flex items-center gap-2"><Plus /> Add Question</Button>
             </div>

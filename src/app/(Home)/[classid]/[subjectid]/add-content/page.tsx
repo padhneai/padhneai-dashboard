@@ -1,7 +1,6 @@
 
 import QuestionForm from '@/components/addcontentforms/QuestionForm';
 import FullpageLoading from '@/components/Loading/FullpageLoading';
-import { log } from 'node:console';
 
 import React, { Suspense } from 'react'
 
@@ -15,7 +14,7 @@ const page = async({params,searchParams}:RouteParams) => {
   const [c,d] = subjectid.split("_")
 const classname  = decodeURIComponent(a)
   
-  // console.log(type,classname,c,d)
+  console.log(type)
  
   return (
   // <AddContentPage subjectId={subjectid} contentType={type} />
