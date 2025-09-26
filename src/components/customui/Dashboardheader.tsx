@@ -84,6 +84,7 @@ const DashboardHeader = ({ data }: UserInfoprops) => {
 
                 {/* Admin only menu */}
                 {role === "admin" && (
+                <>
                   <DropdownMenuItem
                     className="hover:bg-blue-100 p-4 hover:text-blue-600 cursor-pointer transition-colors duration-200"
                     onClick={() => router.push("/generateToken")}
@@ -91,6 +92,15 @@ const DashboardHeader = ({ data }: UserInfoprops) => {
                     <Code className="mr-2 h-4 w-4" />
                     Generate Token
                   </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    className="hover:bg-blue-100 p-4 hover:text-blue-600 cursor-pointer transition-colors duration-200"
+                    onClick={() => router.push("/intern-applications")}
+                  >
+                    <Code className="mr-2 h-4 w-4" />
+                    Intern Applications
+                  </DropdownMenuItem>
+                </>
                 )}
 
                 <DropdownMenuItem

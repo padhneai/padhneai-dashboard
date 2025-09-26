@@ -260,6 +260,17 @@ interface UserInfoprops{
 
 }
 
+interface InternApplication {
+  id: string;
+  name: string;
+  email: string;
+  resumePublicId: string;
+  position: string;
+  coverLetter?: string;
+  createdAt: Date;
+  contact: string;
+}
+
 
 
 
